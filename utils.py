@@ -18,15 +18,11 @@ Modify the response to the question using the provided references. Include preci
 # Add your own OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-def get_embedding(text, mod = "text-embedding-3-small"):
-    client = OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
+def get_embedding(text, mod="paraphrase-MiniLM-L6-v2"):
+    model = SentenceTransformer(mod)
+    embedding = model.encode(text)
 
-    response = client.embeddings.create(
-        input=text,
-        model=mod
-    )
-
-    return response.data[0].embedding
+    return embedding
 
 def fetch_texts(n4j):
     # Fetch the text for each node
