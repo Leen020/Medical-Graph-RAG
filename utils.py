@@ -8,6 +8,7 @@ from summerize import process_chunks
 import openai
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+from sentence_transformers import SentenceTransformer
 
 sys_prompt_one = """
 Please answer the question using insights supported by provided graph-based data relevant to medical information.
