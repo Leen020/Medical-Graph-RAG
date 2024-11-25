@@ -6,6 +6,8 @@ from camel.storages import Neo4jGraph
 import uuid
 from summerize import process_chunks
 import openai
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
 sys_prompt_one = """
 Please answer the question using insights supported by provided graph-based data relevant to medical information.
@@ -17,6 +19,9 @@ Modify the response to the question using the provided references. Include preci
 
 # Add your own OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
+
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
 
 def get_embedding(text, mod="paraphrase-MiniLM-L6-v2"):
     model = SentenceTransformer(mod)
