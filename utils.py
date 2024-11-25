@@ -80,7 +80,7 @@ def add_sum(n4j,content,gid):
 
     return s
 
-def call_llm(sys, user):
+'''def call_llm(sys, user):
     response = openai.chat.completions.create(
         model="gpt-4-1106-preview",
         messages=[
@@ -92,7 +92,20 @@ def call_llm(sys, user):
         stop=None,
         temperature=0.5,
     )
-    return response.choices[0].message.content
+    return response.choices[0].message.content'''
+
+def call_llm(sys, user):
+    message = f"System: {sys}\nUser: {user}\nAssistant:"
+    inputs = tokenizer(message, return_tensors="pt")
+
+    outputs = model.generate(
+        inputs.input_ids,
+        max_length=500,
+        temperature=0.5,
+        num_return_sequences=1,
+        pad_token_id=tokenizer.eos_token_id,
+    )
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 def find_index_of_largest(nums):
     # Sorting the list while keeping track of the original indexes
