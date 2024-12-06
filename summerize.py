@@ -33,7 +33,7 @@ Each category should be addressed only if relevant to the content of the medical
 
 def call_openai_api(chunk):
     response = openai.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": sum_prompt},
             {"role": "user", "content": f" {chunk}"},
