@@ -6,9 +6,6 @@ from camel.storages import Neo4jGraph
 import uuid
 from summerize import process_chunks
 import openai
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-from sentence_transformers import SentenceTransformer
 
 sys_prompt_one = """
 Please answer the question using insights supported by provided graph-based data relevant to medical information.
@@ -21,14 +18,15 @@ Modify the response to the question using the provided references. Include preci
 # Add your own OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
-model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+def get_embedding(text, mod = "text-embedding-3-small"):
+    client = OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
 
-def get_embedding(text, mod="paraphrase-MiniLM-L6-v2"):
-    model = SentenceTransformer(mod)
-    embedding = model.encode(text)
+    response = client.embeddings.create(
+        input=text,
+        model=mod
+    )
 
-    return embedding
+    return response.data[0].embedding
 
 def fetch_texts(n4j):
     # Fetch the text for each node
@@ -81,9 +79,9 @@ def add_sum(n4j,content,gid):
 
     return s
 
-'''def call_llm(sys, user):
+def call_llm(sys, user):
     response = openai.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": sys},
             {"role": "user", "content": f" {user}"},
@@ -93,20 +91,7 @@ def add_sum(n4j,content,gid):
         stop=None,
         temperature=0.5,
     )
-    return response.choices[0].message.content'''
-
-def call_llm(sys, user):
-    message = f"System: {sys}\nUser: {user}\nAssistant:"
-    inputs = tokenizer(message, return_tensors="pt")
-
-    outputs = model.generate(
-        inputs.input_ids,
-        max_length=500,
-        temperature=0.5,
-        num_return_sequences=1,
-        pad_token_id=tokenizer.eos_token_id,
-    )
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return response.choices[0].message.content
 
 def find_index_of_largest(nums):
     # Sorting the list while keeping track of the original indexes
