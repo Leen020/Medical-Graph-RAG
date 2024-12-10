@@ -1,4 +1,4 @@
-from langchain_openai import AzureChatOpenAI  # Correct import from langchain-openai
+from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 import uuid
 import os
@@ -26,7 +26,7 @@ class AgenticChunker:
         if not azure_openai_api_key:
             raise ValueError("Azure OpenAI API key must be provided or set in environment variables")
 
-        # Initialize AzureChatOpenAI using model_kwargs for the API key
+        # model for text extraction
         self.llm = AzureChatOpenAI(
             model_name="gpt-4o-mini", 
             api_key=azure_openai_api_key,
@@ -35,6 +35,7 @@ class AgenticChunker:
             temperature=0  
         )
 
+    # allows batch addition of propositions, while add_proposition handles each one individually.
     def add_propositions(self, propositions):
         for proposition in propositions:
             self.add_proposition(proposition)

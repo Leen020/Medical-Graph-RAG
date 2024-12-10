@@ -21,11 +21,13 @@ def get_propositions(text, runnable, extraction_chain):
     	"input": text
     }).content
     
+    # processes the output to extract propositions (sentences validated by Sentences schema
     propositions = extraction_chain.run(runnable_output)[0].sentences
     return propositions
 
 def run_chunk(essay):
 
+    # pulls a pre-defined LangChain prompt template named "wfh/proposal-indexing"
     obj = hub.pull("wfh/proposal-indexing")
     #llm = ChatOpenAI(model='gpt-4o-mini', openai_api_key = os.getenv("OPENAI_API_KEY"))
     # Use Azure OpenAI
