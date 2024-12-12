@@ -33,9 +33,10 @@ def run_chunk(essay):
     # Use Azure OpenAI
     llm = AzureChatOpenAI(
         model="gpt-4o-mini",
-        azure_openai_api_key=os.getenv("AZURE_OPENAI_API_KEY"), 
-        azure_openai_api_version="2024-07-18", 
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"), 
+        api_version="2024-08-01-preview", 
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        azure_deployment=os.getenv("AZURE_DEPLOYMENT_NAME")
     )
 
     runnable = obj | llm

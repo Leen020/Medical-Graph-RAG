@@ -26,6 +26,7 @@ def get_embedding(text, mod = "text-embedding-3-small"):
         api_key=azure_openai_api_key,
         api_version="2024-08-01-preview",
         azure_endpoint=azure_api_endpoint,
+        azure_deployment=os.getenv("AZURE_DEPLOYMENT_NAME")
     )
     response = client.embeddings.create(
         input=text,
