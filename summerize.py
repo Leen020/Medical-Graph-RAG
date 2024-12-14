@@ -54,7 +54,7 @@ def call_openai_api(chunk):
     return response.content
 
 def split_into_chunks(text, tokens=500):
-    encoding = tiktoken.encoding_for_model('gpt-4-1106-preview')
+    encoding = tiktoken.encoding_for_model('gpt-4o-mini')
     words = encoding.encode(text)
     chunks = []
     for i in range(0, len(words), tokens):

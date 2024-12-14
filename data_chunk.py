@@ -1,5 +1,5 @@
 from langchain.output_parsers.openai_tools import JsonOutputToolsParser
-from langchain_community.chat_models import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda
 from langchain.chains import create_extraction_chain
