@@ -6,7 +6,8 @@ from langchain.chains import create_extraction_chain
 from typing import Optional, List
 from langchain.chains import create_extraction_chain_pydantic
 from pydantic import BaseModel
-from langchain import hub
+from langchain import hub # The `langchainhub sdk` is deprecated. Please use the `langsmith sdk` instead
+# from langsmith import hub
 import os
 from dataloader import load_high
 from agentic_chunker import AgenticChunker
@@ -46,7 +47,7 @@ def run_chunk(essay):
     runnable = obj | llm
 
     # Extraction
-    extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=llm)
+    extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=llm) # function not defined // gives error when running run.py
 
     paragraphs = essay.split("\n\n")
 
