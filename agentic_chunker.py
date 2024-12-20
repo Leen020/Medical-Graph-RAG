@@ -4,7 +4,7 @@ import uuid
 import os
 from typing import Optional
 from pydantic import BaseModel
-from langchain.chains import create_extraction_chain_pydantic
+from langchain.chains.openai_functions import create_extraction_chain_pydantic
 from dotenv import load_dotenv
 
 load_dotenv()

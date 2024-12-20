@@ -4,7 +4,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda
 from langchain.chains import create_extraction_chain
 from typing import Optional, List
-from langchain.chains import create_extraction_chain_pydantic
+from langchain.chains.openai_functions import create_extraction_chain_pydantic
 from pydantic import BaseModel
 from langchain import hub # The `langchainhub sdk` is deprecated. Please use the `langsmith sdk` instead
 # from langsmith import hub
