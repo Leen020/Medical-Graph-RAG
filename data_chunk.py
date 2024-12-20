@@ -49,7 +49,7 @@ def run_chunk(essay):
     runnable = obj | llm
 
     # Extraction
-    extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=llm) # function not defined // gives error when running run.py
+    extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=llm) 
 
     paragraphs = essay.split("\n\n")
 
