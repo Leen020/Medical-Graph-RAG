@@ -324,7 +324,7 @@ class AgenticChunker:
 
         # If you got a response that isn't the chunk id limit, chances are it's a bad response or it found nothing
         # So return nothing
-        if len(chunk_found) != self.id_truncate_limit:
+        if chunk_found is not None and len(chunk_found) != self.id_truncate_limit:
             return None
 
         return chunk_found
