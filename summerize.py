@@ -68,7 +68,7 @@ def process_chunks(content):
     # Processes chunks in parallel
     with ThreadPoolExecutor() as executor:
         responses = list(executor.map(call_openai_api, chunks))
-    # print(responses)
+    print(responses)
     return responses
 
 
