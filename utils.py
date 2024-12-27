@@ -36,6 +36,7 @@ def get_embedding(text, mod = "text-embedding-3-small"):
         return response
     except Exception as e:
         print("Embedding error:", e)
+        print("Error occurred for input text:", text)
         return None
 
 def fetch_texts(n4j):
