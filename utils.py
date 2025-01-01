@@ -180,7 +180,7 @@ def merge_similar_nodes(n4j, gid):
         merge_query = """
             WITH 0.5 AS threshold
             MATCH (n), (m)
-            WHERE NOT n:Summary AND NOT m:Summary AND n.gid = m.gid AND n.gid = $gid AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m))
+            WHERE NOT n:Summary AND NOT m:Summary AND n.gid = m.gid AND n.gid = $gid AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) AND n.embedding IS NOT NULL AND m.embedding IS NOT NULL
             WITH n, m,
                 gds.similarity.cosine(n.embedding, m.embedding) AS similarity
             WHERE similarity > threshold
@@ -195,7 +195,7 @@ def merge_similar_nodes(n4j, gid):
             // Define a threshold for cosine similarity
             WITH 0.5 AS threshold
             MATCH (n), (m)
-            WHERE NOT n:Summary AND NOT m:Summary AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m))
+            WHERE NOT n:Summary AND NOT m:Summary AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) AND n.embedding IS NOT NULL AND m.embedding IS NOT NULL
             WITH n, m,
                 gds.similarity.cosine(n.embedding, m.embedding) AS similarity
             WHERE similarity > threshold
@@ -206,6 +206,58 @@ def merge_similar_nodes(n4j, gid):
         """
         result = n4j.query(merge_query)
     return result
+
+# def merge_similar_nodes(n4j, gid):
+    """
+    Merges similar nodes in the Neo4j graph based on cosine similarity of their embeddings.
+
+    Args:
+        n4j: Neo4j connection object.
+        gid: Graph identifier to scope the merge operation.
+
+    Returns:
+        Result of the merge query execution.
+    """
+    # Define your merge query with safeguards for null embeddings
+    if gid:
+        merge_query = """
+            WITH 0.5 AS threshold
+            MATCH (n), (m)
+            WHERE NOT n:Summary AND NOT m:Summary 
+              AND n.gid = m.gid 
+              AND n.gid = $gid 
+              AND n <> m 
+              AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) 
+              AND n.embedding IS NOT NULL 
+              AND m.embedding IS NOT NULL
+            WITH n, m, gds.similarity.cosine(n.embedding, m.embedding) AS similarity
+            WHERE similarity > threshold
+            WITH head(collect([n, m])) as nodes
+            CALL apoc.refactor.mergeNodes(nodes, {properties: 'overwrite', mergeRels: true})
+            YIELD node
+            RETURN count(*)
+        """
+        result = n4j.query(merge_query, {'gid': gid})
+    else:
+        merge_query = """
+            WITH 0.5 AS threshold
+            MATCH (n), (m)
+            WHERE NOT n:Summary AND NOT m:Summary 
+              AND n <> m 
+              AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) 
+              AND n.embedding IS NOT NULL 
+              AND m.embedding IS NOT NULL
+            WITH n, m, gds.similarity.cosine(n.embedding, m.embedding) AS similarity
+            WHERE similarity > threshold
+            WITH head(collect([n, m])) as nodes
+            CALL apoc.refactor.mergeNodes(nodes, {properties: 'overwrite', mergeRels: true})
+            YIELD node
+            RETURN count(*)
+        """
+        result = n4j.query(merge_query)
+    
+    return result
+
 
 def ref_link(n4j, gid1, gid2):
     trinity_query = """
