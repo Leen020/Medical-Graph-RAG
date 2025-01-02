@@ -348,6 +348,7 @@ class AgenticChunker:
         for chunk_id, chunk in self.chunks.items():
             print(f"Chunk #{chunk['chunk_index']}")
             print(f"Chunk ID: {chunk_id}")
+            print(f"Title: {chunk['title']}")
             print(f"Summary: {chunk['summary']}")
             print(f"Propositions:")
             for prop in chunk['propositions']:
