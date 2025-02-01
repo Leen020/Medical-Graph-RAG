@@ -71,4 +71,4 @@ else:
         sum = process_chunks(question)
         gid = seq_ret(n4j, sum)
         response = get_response(n4j, gid, question)
-        print(response)
+        print(f'This is the response: {response}')

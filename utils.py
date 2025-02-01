@@ -9,6 +9,7 @@ import openai
 from openai import AzureOpenAI
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import AzureChatOpenAI
 
 sys_prompt_one = """
 Please answer the question using insights supported by provided graph-based data relevant to medical information.
@@ -21,6 +22,18 @@ Modify the response to the question using the provided references. Include preci
 azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
 azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+
+llm = AzureChatOpenAI(
+            model="gpt-4o-mini", 
+            api_key=azure_openai_api_key,
+            api_version="2024-08-01-preview",
+            azure_endpoint=azure_endpoint,
+            azure_deployment=azure_deployment,
+            temperature=0.5,
+            max_tokens=500, 
+            n=1,
+            stop_sequences=None
+    )
 
 def get_embedding(text, mod = "text-embedding-3-small"):
     try:
@@ -90,19 +103,26 @@ def add_sum(n4j,content,gid):
 
     return s
 
+# def call_llm(sys, user):
+#     response = AzureOpenAI.chat.completions.create(
+#         model="gpt-4o-mini",
+#         messages=[
+#             {"role": "system", "content": sys},
+#             {"role": "user", "content": f" {user}"},
+#         ],
+#         max_tokens=500,
+#         n=1,
+#         stop=None,
+#         temperature=0.5,
+#     )
+#     return response.choices[0].message.content
+
 def call_llm(sys, user):
-    response = AzureOpenAI.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
+    response = llm.invoke([
             {"role": "system", "content": sys},
             {"role": "user", "content": f" {user}"},
-        ],
-        max_tokens=500,
-        n=1,
-        stop=None,
-        temperature=0.5,
-    )
-    return response.choices[0].message.content
+        ])
+    return response.content
 
 def find_index_of_largest(nums):
     # Sorting the list while keeping track of the original indexes

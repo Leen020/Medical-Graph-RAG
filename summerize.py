@@ -4,6 +4,7 @@ import tiktoken
 import os
 from openai import AzureOpenAI
 from langchain_openai import AzureChatOpenAI
+from openai import BadRequestError
 
 # Add your own OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -47,16 +48,22 @@ llm = AzureChatOpenAI(
     )
 
 def call_openai_api(chunk):
-    response = llm.invoke([
-            {"role": "system", "content": sum_prompt},
-            {"role": "user", "content": f" {chunk}"},
-        ])
-    return response.content
+    try:
+        response = llm.invoke([
+                {"role": "system", "content": sum_prompt},
+                {"role": "user", "content": f" {chunk}"},
+            ])
+        return response.content
+    except BadRequestError as e:
+        if "content_filter" in str(e):
+            print(f"Content filter triggered. Deleting problematic file...")
+            delete_problematic_file(chunk)  # Pass the problematic content to delete the file
+        raise  # Re-raise the exception after handling
 
 def split_into_chunks(text, tokens=500):
     encoding = tiktoken.encoding_for_model('gpt-4o-mini')
     words = encoding.encode(text)
-    chunks = []
+    chunks = [] 
     for i in range(0, len(words), tokens):
         chunks.append(' '.join(encoding.decode(words[i:i + tokens])))
     print(f"chunks = {chunks}")
@@ -67,10 +74,30 @@ def process_chunks(content):
 
     # Processes chunks in parallel
     with ThreadPoolExecutor() as executor:
-        responses = list(executor.map(call_openai_api, chunks))
+        try:
+            responses = list(executor.map(call_openai_api, chunks))
+        except BadRequestError:
+            print("Skipping chunk due to content filter violation.")
+            responses = []
     print(responses)
     return responses
 
+def delete_problematic_file(content):
+    """
+    Identify and delete the problematic file based on the content that caused the error.
+    """
+    # Specify the directory containing your .txt files
+    directory = 'dataset'
+    
+    for filename in os.listdir(directory):
+        if filename.endswith(".txt"):
+            filepath = os.path.join(directory, filename)
+            with open(filepath, "r", encoding="utf-8") as file:
+                file_content = file.read()
+                if content in file_content:  # Check if the problematic content is in this file
+                    print(f"Deleting problematic file: {filename}")
+                    os.remove(filepath)
+                    return  # Exit after deleting the problematic file
 
 if __name__ == "__main__":
     content = " sth you wanna test"

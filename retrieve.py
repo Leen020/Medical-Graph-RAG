@@ -19,6 +19,7 @@ def seq_ret(n4j, sumq):
     
     for sk in sumk:
         sk = sk[0]
+        print(sk[0])
         rate = call_llm(sys_p, "The two summaries for comparison are: \n Summary 1: " + sk + "\n Summary 2: " + sumq[0])
         if "totally not similar" in rate:
             rating_list.append(0)
