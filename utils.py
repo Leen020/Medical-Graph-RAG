@@ -22,6 +22,7 @@ Modify the response to the question using the provided references. Include preci
 azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
 azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+# embedding_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT")
 
 llm = AzureChatOpenAI(
             model="gpt-4o-mini", 
@@ -35,7 +36,7 @@ llm = AzureChatOpenAI(
             stop_sequences=None
     )
 
-def get_embedding(text, mod = "text-embedding-3-small"):
+def get_embedding(text, mod = "text-embedding-3-large"):
     try:
         embeddings_client = AzureOpenAIEmbeddings(
             model=mod,
