@@ -56,6 +56,7 @@ else:
             
             # Read and print the contents of each file
             for file_name in files:
+                print(file_name)
                 file_path = os.path.join(args.data_path, file_name)
                 content = load_high(file_path)
                 gid = str_uuid()

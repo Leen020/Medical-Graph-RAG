@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import tiktoken
 import os
 from openai import AzureOpenAI
-from langchain_openai import AzureChatOpenAI
+# from langchain_openai import AzureChatOpenAI
 from openai import BadRequestError
 
 # Add your own OpenAI API key
@@ -38,22 +38,38 @@ azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
 azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 
-llm = AzureChatOpenAI(
-            model="gpt-4o-mini", 
-            api_key=azure_openai_api_key,
-            api_version="2024-08-01-preview",
-            azure_endpoint=azure_endpoint,
-            azure_deployment=azure_deployment,
-            temperature=0.5
-    )
+llm = AzureOpenAI(
+  azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"), 
+  api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
+  api_version="2024-08-01-preview"
+)
+
+# def call_openai_api(chunk):
+#     try:
+#         response = llm.invoke([
+#                 {"role": "system", "content": sum_prompt},
+#                 {"role": "user", "content": f" {chunk}"},
+#             ])
+#         return response.content
+#     except BadRequestError as e:
+#         if "content_filter" in str(e):
+#             print(f"Content filter triggered. Deleting problematic file...")
+#             delete_problematic_file(chunk)  # Pass the problematic content to delete the file
+#         raise  # Re-raise the exception after handling
 
 def call_openai_api(chunk):
     try:
-        response = llm.invoke([
-                {"role": "system", "content": sum_prompt},
-                {"role": "user", "content": f" {chunk}"},
-            ])
-        return response.content
+        response = llm.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+            {"role": "system", "content": sum_prompt},
+            {"role": "user", "content": f" {chunk}"}],
+            temperature=0.5,
+            max_tokens=500,
+            n=1,
+            stop=None  
+            )
+        return response.choices[0].message.content
     except BadRequestError as e:
         if "content_filter" in str(e):
             print(f"Content filter triggered. Deleting problematic file...")

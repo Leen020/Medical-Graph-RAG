@@ -9,7 +9,7 @@ import openai
 from openai import AzureOpenAI
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_openai import AzureChatOpenAI
+# from langchain_openai import AzureChatOpenAI
 
 sys_prompt_one = """
 Please answer the question using insights supported by provided graph-based data relevant to medical information.
@@ -24,30 +24,46 @@ azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
 azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 # embedding_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT")
 
-llm = AzureChatOpenAI(
-            model="gpt-4o-mini", 
-            api_key=azure_openai_api_key,
-            api_version="2024-08-01-preview",
-            azure_endpoint=azure_endpoint,
-            azure_deployment=azure_deployment,
-            temperature=0.5,
-            max_tokens=500, 
-            n=1,
-            stop_sequences=None
-    )
+# llm = AzureChatOpenAI(
+#             model="gpt-4o-mini", 
+#             api_key=azure_openai_api_key,
+#             api_version="2024-08-01-preview",
+#             azure_endpoint=azure_endpoint,
+#             azure_deployment=azure_deployment,
+#             temperature=0.5,
+#             max_tokens=500, 
+#             n=1,
+#             stop_sequences=None
+#     )
+
+llm = AzureOpenAI(
+  azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"), 
+  api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
+  api_version="2024-08-01-preview"
+)
+
+
+# def get_embedding(text, mod = "text-embedding-3-large"):
+#     try:
+#         embeddings_client = AzureOpenAIEmbeddings(
+#             model=mod,
+#             deployment=azure_deployment,
+#             openai_api_key=azure_openai_api_key,
+#             azure_endpoint=azure_endpoint,
+#             openai_api_version="2024-08-01-preview"
+#         )
+#         response = embeddings_client.embed_query(text)
+#         print(response)
+#         return response
+#     except Exception as e:
+#         print("Embedding error:", e)
+#         print("Error occurred for input text:", text)
+#         return None
 
 def get_embedding(text, mod = "text-embedding-3-large"):
     try:
-        embeddings_client = AzureOpenAIEmbeddings(
-            model=mod,
-            deployment=azure_deployment,
-            openai_api_key=azure_openai_api_key,
-            azure_endpoint=azure_endpoint,
-            openai_api_version="2024-08-01-preview"
-        )
-        response = embeddings_client.embed_query(text)
-        print(response)
-        return response
+       llm.embeddings.create(input=text, model=mod)
+        
     except Exception as e:
         print("Embedding error:", e)
         print("Error occurred for input text:", text)
@@ -118,12 +134,26 @@ def add_sum(n4j,content,gid):
 #     )
 #     return response.choices[0].message.content
 
+# def call_llm(sys, user):
+#     response = llm.invoke([
+#             {"role": "system", "content": sys},
+#             {"role": "user", "content": f" {user}"},
+#         ])
+#     return response.content
+
 def call_llm(sys, user):
-    response = llm.invoke([
-            {"role": "system", "content": sys},
-            {"role": "user", "content": f" {user}"},
-        ])
-    return response.content
+    response = llm.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+        {"role": "system", "content": sys},
+        {"role": "user", "content": f" {user}"}
+        ],
+        temperature=0.5,
+        max_tokens=500,
+        n=1,
+        stop=None
+    )
+    return response.choices[0].message.content
 
 def find_index_of_largest(nums):
     # Sorting the list while keeping track of the original indexes
