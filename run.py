@@ -11,6 +11,7 @@ from summerize import process_chunks
 from retrieve import seq_ret
 from utils import *
 from nano_graphrag import GraphRAG, QueryParam
+import re
 
 # %% set up parser
 parser = argparse.ArgumentParser()
@@ -27,6 +28,10 @@ parser.add_argument('-dataset', type=str, default='mimic_ex')
 parser.add_argument('-data_path', type=str, default='./dataset_test')
 parser.add_argument('-test_data_path', type=str, default='./dataset_ex/report_0.txt')
 args = parser.parse_args()
+
+def natural_sort_key(s):
+    # Split the string into text and number parts and convert numeric parts to integers
+    return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', s)]
 
 if args.simple:
     graph_func = GraphRAG(working_dir="./nanotest")
@@ -52,7 +57,10 @@ else:
 
     if args.construct_graph: 
         if args.dataset == 'mimic_ex':
-            files = [file for file in os.listdir(args.data_path) if os.path.isfile(os.path.join(args.data_path, file))]
+            files =sorted(
+                [file for file in os.listdir(args.data_path) if os.path.isfile(os.path.join(args.data_path, file))],
+                key=natural_sort_key
+            )
             
             # Read and print the contents of each file
             for file_name in files:
