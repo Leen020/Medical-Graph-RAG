@@ -10,6 +10,7 @@ import argparse
 from data_chunk import run_chunk
 from utils import *
 from camel.models import ModelFactory
+from openai import AzureOpenAI
 
 def creat_metagraph(args, content, gid, n4j):
     # Azure OpenAI Model setup
@@ -20,8 +21,8 @@ def creat_metagraph(args, content, gid, n4j):
     azure_deployment=os.getenv("AZURE_DEPLOYMENT_NAME")
 
     model_config_dict = {
-        "temperature": 0.7,
-        "max_tokens": 512,
+        "temperature": 0.5,
+        "max_tokens": 1024,
         "stream": False  # Set to True if you need streaming responses
     }
     
@@ -48,7 +49,7 @@ def creat_metagraph(args, content, gid, n4j):
     for cont in content:
         element_example = uio.create_element_from_text(text=cont)
 
-        # ans_str = kg_agent.run(element_example, parse_graph_elements=False)
+        ans_str = kg_agent.run(element_example, parse_graph_elements=False)
         # print(ans_str)
         graph_elements = kg_agent.run(element_example, parse_graph_elements=True)
         graph_elements = add_ge_emb(graph_elements)

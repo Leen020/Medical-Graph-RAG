@@ -1,4 +1,4 @@
-from openai import OpenAI
+# from openai import OpenAI
 import os
 from neo4j import GraphDatabase
 import numpy as np
@@ -7,7 +7,7 @@ import uuid
 from summerize import process_chunks
 import openai
 from openai import AzureOpenAI
-from langchain_openai import AzureOpenAIEmbeddings
+# from langchain_openai import AzureOpenAIEmbeddings
 from langchain_community.embeddings import OpenAIEmbeddings
 # from langchain_openai import AzureChatOpenAI
 
@@ -22,7 +22,7 @@ Modify the response to the question using the provided references. Include preci
 azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
 azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-# embedding_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT")
+embedding_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT")
 
 # llm = AzureChatOpenAI(
 #             model="gpt-4o-mini", 
@@ -42,6 +42,11 @@ llm = AzureOpenAI(
   api_version="2024-08-01-preview"
 )
 
+embedding_model = AzureOpenAI(
+  azure_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT"), 
+  api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
+  api_version="2023-05-15"
+)
 
 # def get_embedding(text, mod = "text-embedding-3-large"):
 #     try:
@@ -60,13 +65,35 @@ llm = AzureOpenAI(
 #         print("Error occurred for input text:", text)
 #         return None
 
-def get_embedding(text, mod = "text-embedding-3-large"):
+def get_embedding(text, mod="text-embedding-3-large"):
     try:
-       llm.embeddings.create(input=text, model=mod)
+        # Attempt to create the embedding
+        response = embedding_model.embeddings.create(input=text, model=mod)
+        return response.data[0].embedding
         
     except Exception as e:
-        print("Embedding error:", e)
-        print("Error occurred for input text:", text)
+        # Extract detailed error information
+        error_type = type(e).__name__
+        error_msg = str(e)
+        
+        # Additional details for API-specific errors (e.g., OpenAI)
+        status_code = getattr(e, 'status_code', None)
+        error_code = getattr(e, 'code', None)
+        
+        # Construct a comprehensive error message
+        print("\n--- Embedding Error Details ---")
+        print(f"Error Type: {error_type}")
+        print(f"Message: {error_msg}")
+        
+        if status_code is not None:
+            print(f"HTTP Status Code: {status_code}")
+        if error_code is not None:
+            print(f"API Error Code: {error_code}")
+            
+        print(f"Model Used: {mod}")
+        print(f"Input Text (length {len(text)}): {text[:100] + '...' if len(text) > 100 else text}")  # Truncate long text
+        print("------------------------------\n")
+        
         return None
 
 def fetch_texts(n4j):

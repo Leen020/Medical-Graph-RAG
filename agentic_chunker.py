@@ -329,7 +329,7 @@ class AgenticChunker:
 
         return chunk_found
     
-    def get_chunks(self, get_type='dict'):
+    def get_chunks(self, get_type='list_of_strings'):
         """
         This function returns the chunks in the format specified by the 'get_type' parameter.
         If 'get_type' is 'dict', it returns the chunks as a dictionary.
