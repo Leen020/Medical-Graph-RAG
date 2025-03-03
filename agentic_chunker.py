@@ -67,14 +67,15 @@ class AgenticChunker:
         chunk_id = self._find_relevant_chunk(proposition)
 
         # If a chunk was found then add the proposition to it
-        if chunk_id:
+        if chunk_id and chunk_id in self.chunks:
             if self.print_logging:
                 print (f"Chunk Found ({self.chunks[chunk_id]['chunk_id']}), adding to: {self.chunks[chunk_id]['title']}")
             self.add_proposition_to_chunk(chunk_id, proposition)
             return
         else:
+            # Handle invalid chunk_id (treat as no chunk found)
             if self.print_logging:
-                print ("No chunks found")
+                print(f"Invalid chunk ID {chunk_id} or no chunk found. Creating new chunk.")
             # If a chunk wasn't found, then create a new one
             self._create_new_chunk(proposition)
         
@@ -289,14 +290,14 @@ class AgenticChunker:
                     Input:
                         - Proposition: "Greg really likes hamburgers"
                         - Current Chunks:
-                            - Chunk ID: 2n4l3d
+                            - Chunk ID: 2n4l3
                             - Chunk Name: Places in San Francisco
                             - Chunk Summary: Overview of the things to do with San Francisco Places
 
-                            - Chunk ID: 93833k
+                            - Chunk ID: 93833
                             - Chunk Name: Food Greg likes
                             - Chunk Summary: Lists of the food and dishes that Greg likes
-                    Output: 93833k
+                    Output: 93833
                     """,
                 ),
                 ("user", "Current Chunks:\n--Start of current chunks--\n{current_chunk_outline}\n--End of current chunks--"),
