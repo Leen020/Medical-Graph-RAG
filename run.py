@@ -12,6 +12,8 @@ from retrieve import seq_ret
 from utils import *
 from nano_graphrag import GraphRAG, QueryParam
 import re
+from print_logger import Logger
+import sys
 
 # %% set up parser
 parser = argparse.ArgumentParser()
@@ -28,6 +30,14 @@ parser.add_argument('-dataset', type=str, default='mimic_ex')
 parser.add_argument('-data_path', type=str, default='./dataset_test')
 parser.add_argument('-test_data_path', type=str, default='./dataset_ex/report_0.txt')
 args = parser.parse_args()
+
+# Initialize logging at the start of your script
+sys.stdout = Logger("processing.log")
+sys.stderr = sys.stdout  # Redirect stderr to the same logger
+
+# Keep a reference to original stdout/stderr if needed
+original_stdout = sys.__stdout__
+original_stderr = sys.__stderr__
 
 def natural_sort_key(s):
     # Split the string into text and number parts and convert numeric parts to integers
@@ -66,9 +76,19 @@ else:
             for file_name in files:
                 print(file_name)
                 file_path = os.path.join(args.data_path, file_name)
-                content = load_high(file_path)
-                gid = str_uuid()
-                n4j = creat_metagraph(args, content, gid, n4j)
+                try:
+                    content = load_high(file_path)
+                    gid = str_uuid()
+                    n4j = creat_metagraph(args, content, gid, n4j)
+                
+                except ValueError as e:
+                    if "Azure has not provided the response due to a content filter" in str(e):
+                        print(f"\n⚠️ Skipped '{file_name}' due to content filter. File removed. ⚠️\n")
+                        os.remove(file_path)  # Delete the problematic document
+                        continue  # Skip to next document
+                except Exception as e:
+                    print(f"Unexpected error processing {file_name}: {str(e)}")
+                    raise
 
                 if args.trinity:
                     link_context(n4j, args.trinity_gid1)

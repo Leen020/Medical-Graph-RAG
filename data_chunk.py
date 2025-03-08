@@ -56,10 +56,17 @@ def run_chunk(essay):
     essay_propositions = []
 
     for i, para in enumerate(paragraphs):
-        propositions = get_propositions(para, runnable, extraction_chain)
+        try:
+            propositions = get_propositions(para, runnable, extraction_chain)
+            essay_propositions.extend(propositions)
+            print (f"Done with {i}")
         
-        essay_propositions.extend(propositions)
-        print (f"Done with {i}")
+        except ValueError as e:
+            if "Azure has not provided the response due to a content filter" in str(e):
+                print(f"\n⛔ Skipped paragraph {i} due to content filter. Continuing... ⛔\n")
+                continue  # Skip this chunk but process others
+            else:
+                raise  # Re-raise unexpected ValueErrors
 
     ac = AgenticChunker()
     ac.add_propositions(essay_propositions)

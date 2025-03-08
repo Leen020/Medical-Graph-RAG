@@ -272,6 +272,7 @@ class AgenticChunker:
 
     def _find_relevant_chunk(self, proposition):
         current_chunk_outline = self.get_chunk_outline()
+        print(current_chunk_outline)
 
         PROMPT = ChatPromptTemplate.from_messages(
             [
