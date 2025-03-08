@@ -258,7 +258,7 @@ def merge_similar_nodes(n4j, gid):
         merge_query = """
             WITH 0.5 AS threshold
             MATCH (n), (m)
-            WHERE NOT n:Summary AND NOT m:Summary AND n.gid = m.gid AND n.gid = $gid AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) AND n.embedding IS NOT NULL AND m.embedding IS NOT NULL
+            WHERE NOT n:Summary AND NOT m:Summary AND n.gid = m.gid AND n.gid = $gid AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m))
             WITH n, m,
                 gds.similarity.cosine(n.embedding, m.embedding) AS similarity
             WHERE similarity > threshold
@@ -273,7 +273,7 @@ def merge_similar_nodes(n4j, gid):
             // Define a threshold for cosine similarity
             WITH 0.5 AS threshold
             MATCH (n), (m)
-            WHERE NOT n:Summary AND NOT m:Summary AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) AND n.embedding IS NOT NULL AND m.embedding IS NOT NULL
+            WHERE NOT n:Summary AND NOT m:Summary AND n<>m AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m))
             WITH n, m,
                 gds.similarity.cosine(n.embedding, m.embedding) AS similarity
             WHERE similarity > threshold
