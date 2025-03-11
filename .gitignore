@@ -16,3 +16,4 @@ __pycache__
 # ignore special files or folds
 .DS_Store
 processing.log
+*.log
