@@ -65,7 +65,7 @@ def call_openai_api(chunk):
             {"role": "system", "content": sum_prompt},
             {"role": "user", "content": f" {chunk}"}],
             temperature=0.5,
-            max_tokens=500,
+            max_tokens=16384,
             n=1,
             stop=None  
             )
