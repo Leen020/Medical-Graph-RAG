@@ -83,7 +83,7 @@ else:
                 
                 except ValueError as e:
                     if "Azure has not provided the response due to a content filter" in str(e):
-                        print(f"\n⚠️ Skipped '{file_name}' due to content filter. File removed. ⚠️\n")
+                        print(f"\nSkipped '{file_name}' due to content filter. File removed.\n")
                         os.remove(file_path)  # Delete the problematic document
                         continue  # Skip to next document
                 except Exception as e:
