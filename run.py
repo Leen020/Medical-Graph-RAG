@@ -66,7 +66,7 @@ else:
     )
 
     if args.construct_graph: 
-        if args.dataset == 'mimic_ex':
+        if args.dataset == 'mimic_ex' or 'books':
             files =sorted(
                 [file for file in os.listdir(args.data_path) if os.path.isfile(os.path.join(args.data_path, file))],
                 key=natural_sort_key
