@@ -24,8 +24,10 @@ def get_propositions(text, runnable, extraction_chain):
     }).content
     
     # processes the output to extract propositions (sentences validated by Sentences schema
-    propositions = extraction_chain.run(runnable_output)[0].sentences
-    return propositions
+    result = extraction_chain.run(runnable_output)
+    if not result:
+        return []
+    return result[0].sentences
 
 def run_chunk(essay):
 
@@ -59,7 +61,7 @@ def run_chunk(essay):
         try:
             propositions = get_propositions(para, runnable, extraction_chain)
             essay_propositions.extend(propositions)
-            print (f"Done with {i}")
+            print (f"propositions: {essay_propositions}")
         
         except ValueError as e:
             if "Azure has not provided the response due to a content filter" in str(e):

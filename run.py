@@ -79,7 +79,8 @@ else:
                 try:
                     content = load_high(file_path)
                     gid = str_uuid()
-                    n4j = creat_metagraph(args, content, gid, n4j)
+                    filename = os.path.splitext(file_name)[0]
+                    n4j = creat_metagraph(args, content, gid, n4j, filename)
                 
                 except ValueError as e:
                     if "Azure has not provided the response due to a content filter" in str(e):

@@ -116,10 +116,12 @@ def add_nodes_emb(n4j):
             # Store embedding back in the node
             add_embeddings(n4j, node['id'], embedding)
 
-def add_ge_emb(graph_element):
+def add_ge_emb(graph_element, file_name, args):
     for node in graph_element.nodes:
         emb = get_embedding(node.id)
         node.properties['embedding'] = emb
+        if args.dataset == 'books':
+            node.properties['reference'] = file_name
     return graph_element
 
 def add_gid(graph_element, gid):

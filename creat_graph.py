@@ -12,7 +12,7 @@ from utils import *
 from camel.models import ModelFactory
 from openai import AzureOpenAI
 
-def creat_metagraph(args, content, gid, n4j):
+def creat_metagraph(args, content, gid, n4j, file_name):
     # Azure OpenAI Model setup
     model="gpt-4o-mini"
     api_key=os.getenv("AZURE_OPENAI_API_KEY")
@@ -52,7 +52,7 @@ def creat_metagraph(args, content, gid, n4j):
         # ans_str = kg_agent.run(element_example, parse_graph_elements=False)
         # print(ans_str)
         graph_elements = kg_agent.run(element_example, parse_graph_elements=True)
-        graph_elements = add_ge_emb(graph_elements)
+        graph_elements = add_ge_emb(graph_elements, file_name, args)
         graph_elements = add_gid(graph_elements, gid)
 
         n4j.add_graph_elements(graph_elements=[graph_elements])
