@@ -19,3 +19,4 @@ processing.log
 *.log
 *.log
 /.vs
+*.log
