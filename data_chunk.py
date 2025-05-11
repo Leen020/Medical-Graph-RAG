@@ -71,6 +71,7 @@ def run_chunk(essay):
                 raise  # Re-raise unexpected ValueErrors
 
     ac = AgenticChunker()
+    essay_propositions = list(filter(None, essay_propositions))
     ac.add_propositions(essay_propositions)
     ac.pretty_print_chunks()
     chunks = ac.get_chunks(get_type='list_of_strings')

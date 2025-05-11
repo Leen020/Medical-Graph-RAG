@@ -14,13 +14,7 @@ def rrf_to_csv(input_file, output_file):
             # write split data as a row in the CSV file
             csv_writer.writerow(columns)
 
-# rrf_to_csv(r"D:\2024AA\META\MRCONSO.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\dataset_extraction_test\MIMIC-IV\hosp\umls\MRCONSO.csv")
-# rrf_to_csv(r"D:\2024AA\META\MRREL.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\dataset_extraction_test\MIMIC-IV\hosp\umls\MRREL.csv")
-# rrf_to_csv(r"D:\2024AA\META\MRSTY.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\dataset_extraction_test\MIMIC-IV\hosp\umls\MRSTY.csv")
-#rrf_to_csv(r"D:\2024AA\META\MRSAT.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\dataset_extraction_test\MIMIC-IV\hosp\umls\MRSAT.csv")
-#rrf_to_csv(r"D:\2024AA\META\MRHIER.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\dataset_extraction_test\MIMIC-IV\hosp\umls\MRHIER.csv")
-#rrf_to_csv(r"D:\2024AA\META\MRDEF.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\dataset_extraction_test\MIMIC-IV\hosp\umls\MRDEF.csv")
-#rrf_to_csv(r"D:\2024AA\META\MRCUI.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\dataset_extraction_test\MIMIC-IV\hosp\umls\MRCUI.csv")
-rrf_to_csv(r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\datasets\2024AB\META\MRXW_TUR.RRF", r"C:\Users\LENOVO\Desktop\Marmara_University\7th_semester\graduation project\datasets\umls\MRXW_TUR.csv")
+rrf_to_csv(r"E:\.Neo4jDesktop\relate-data\dbmss\dbms-5a7d22d6-f68d-4cb8-a5c9-0c8032995ed9\import\MRREL.RRF", r"E:\.Neo4jDesktop\relate-data\dbmss\dbms-5a7d22d6-f68d-4cb8-a5c9-0c8032995ed9\import\MRREL.csv")
+
 
 
