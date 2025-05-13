@@ -1,16 +1,16 @@
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import AzureChatOpenAI
+from langchain.prompts import ChatPromptTemplate
 import uuid
-from langchain.chat_models import ChatOpenAI
 import os
 from typing import Optional
-from langchain_core.pydantic_v1 import BaseModel
-from langchain.chains import create_extraction_chain_pydantic
+from pydantic import BaseModel
+from langchain.chains.openai_functions import create_extraction_chain_pydantic
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class AgenticChunker:
-    def __init__(self, openai_api_key=None):
+    def __init__(self, azure_openai_api_key=None, azure_deployment=None, azure_endpoint=None):
         self.chunks = {}
         self.id_truncate_limit = 5
 
@@ -18,14 +18,37 @@ class AgenticChunker:
         self.generate_new_metadata_ind = True
         self.print_logging = True
 
-        if openai_api_key is None:
-            openai_api_key = os.getenv("OPENAI_API_KEY")
+        # Load API credentials from environment variables if not provided
+        if azure_openai_api_key is None:
+            azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        
+        if azure_deployment is None:
+            azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
 
-        if openai_api_key is None:
-            raise ValueError("API key is not provided and not found in environment variables")
+        if azure_endpoint is None:
+            azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        # Ensure API key is provided
+        if not azure_endpoint:
+            raise ValueError("Azure OpenAI ENDPOINT must be provided or set in environment variables")
+        
+        # Ensure API key is provided
+        if not azure_openai_api_key:
+            raise ValueError("Azure OpenAI API key must be provided or set in environment variables")
+        
+        if not azure_deployment:
+            raise ValueError("Azure deployment name must be provided or set in environment variables")
+        
+        # model for text extraction
+        self.llm = AzureChatOpenAI(
+            model="gpt-4o-mini", 
+            api_key=azure_openai_api_key,
+            api_version="2024-08-01-preview",
+            azure_endpoint=azure_endpoint,
+            azure_deployment=azure_deployment
+        )
 
-        self.llm = ChatOpenAI(model='gpt-4o-mini', openai_api_key=openai_api_key, temperature=0)
-
+        print(f"FINISHED INITIALIZING LLM WITHOUT ERRORS")
+    # allows batch addition of propositions, while add_proposition handles each one individually.
     def add_propositions(self, propositions):
         for proposition in propositions:
             self.add_proposition(proposition)
@@ -44,14 +67,15 @@ class AgenticChunker:
         chunk_id = self._find_relevant_chunk(proposition)
 
         # If a chunk was found then add the proposition to it
-        if chunk_id:
+        if chunk_id and chunk_id in self.chunks:
             if self.print_logging:
                 print (f"Chunk Found ({self.chunks[chunk_id]['chunk_id']}), adding to: {self.chunks[chunk_id]['title']}")
             self.add_proposition_to_chunk(chunk_id, proposition)
             return
         else:
+            # Handle invalid chunk_id (treat as no chunk found)
             if self.print_logging:
-                print ("No chunks found")
+                print(f"Invalid chunk ID {chunk_id} or no chunk found. Creating new chunk.")
             # If a chunk wasn't found, then create a new one
             self._create_new_chunk(proposition)
         
@@ -217,7 +241,9 @@ class AgenticChunker:
 
     def _create_new_chunk(self, proposition):
         new_chunk_id = str(uuid.uuid4())[:self.id_truncate_limit] # I don't want long ids
+        print(f"new chunk id = {new_chunk_id}")
         new_chunk_summary = self._get_new_chunk_summary(proposition)
+        print(f"summary {new_chunk_summary}")
         new_chunk_title = self._get_new_chunk_title(new_chunk_summary)
 
         self.chunks[new_chunk_id] = {
@@ -246,6 +272,7 @@ class AgenticChunker:
 
     def _find_relevant_chunk(self, proposition):
         current_chunk_outline = self.get_chunk_outline()
+        print(current_chunk_outline)
 
         PROMPT = ChatPromptTemplate.from_messages(
             [
@@ -264,14 +291,14 @@ class AgenticChunker:
                     Input:
                         - Proposition: "Greg really likes hamburgers"
                         - Current Chunks:
-                            - Chunk ID: 2n4l3d
+                            - Chunk ID: 2n4l3
                             - Chunk Name: Places in San Francisco
                             - Chunk Summary: Overview of the things to do with San Francisco Places
 
-                            - Chunk ID: 93833k
+                            - Chunk ID: 93833
                             - Chunk Name: Food Greg likes
                             - Chunk Summary: Lists of the food and dishes that Greg likes
-                    Output: 93833k
+                    Output: 93833
                     """,
                 ),
                 ("user", "Current Chunks:\n--Start of current chunks--\n{current_chunk_outline}\n--End of current chunks--"),
@@ -299,7 +326,7 @@ class AgenticChunker:
 
         # If you got a response that isn't the chunk id limit, chances are it's a bad response or it found nothing
         # So return nothing
-        if len(chunk_found) != self.id_truncate_limit:
+        if chunk_found is not None and len(chunk_found) != self.id_truncate_limit:
             return None
 
         return chunk_found
@@ -323,6 +350,7 @@ class AgenticChunker:
         for chunk_id, chunk in self.chunks.items():
             print(f"Chunk #{chunk['chunk_index']}")
             print(f"Chunk ID: {chunk_id}")
+            print(f"Title: {chunk['title']}")
             print(f"Summary: {chunk['summary']}")
             print(f"Propositions:")
             for prop in chunk['propositions']:
@@ -343,22 +371,22 @@ if __name__ == "__main__":
         "One of the most important things that I didn't understand about the world as a child was the degree to which the returns for performance are superlinear.",
         'Teachers and coaches implicitly told us that the returns were linear.',
         "I heard a thousand times that 'You get out what you put in.'",
-        # 'Teachers and coaches meant well.',
-        # "The statement that 'You get out what you put in' is rarely true.",
-        # "If your product is only half as good as your competitor's product, you do not get half as many customers.",
-        # "You get no customers if your product is only half as good as your competitor's product.",
-        # 'You go out of business if you get no customers.',
-        # 'The returns for performance are superlinear in business.',
-        # 'Some people think the superlinear returns for performance are a flaw of capitalism.',
-        # 'Some people think that changing the rules of capitalism would stop the superlinear returns for performance from being true.',
-        # 'Superlinear returns for performance are a feature of the world.',
-        # 'Superlinear returns for performance are not an artifact of rules that humans have invented.',
-        # 'The same pattern of superlinear returns is observed in fame.',
-        # 'The same pattern of superlinear returns is observed in power.',
-        # 'The same pattern of superlinear returns is observed in military victories.',
-        # 'The same pattern of superlinear returns is observed in knowledge.',
-        # 'The same pattern of superlinear returns is observed in benefit to humanity.',
-        # 'In fame, power, military victories, knowledge, and benefit to humanity, the rich get richer.'
+        'Teachers and coaches meant well.',
+        "The statement that 'You get out what you put in' is rarely true.",
+        "If your product is only half as good as your competitor's product, you do not get half as many customers.",
+        "You get no customers if your product is only half as good as your competitor's product.",
+        'You go out of business if you get no customers.',
+        'The returns for performance are superlinear in business.',
+        'Some people think the superlinear returns for performance are a flaw of capitalism.',
+        'Some people think that changing the rules of capitalism would stop the superlinear returns for performance from being true.',
+        'Superlinear returns for performance are a feature of the world.',
+        'Superlinear returns for performance are not an artifact of rules that humans have invented.',
+        'The same pattern of superlinear returns is observed in fame.',
+        'The same pattern of superlinear returns is observed in power.',
+        'The same pattern of superlinear returns is observed in military victories.',
+        'The same pattern of superlinear returns is observed in knowledge.',
+        'The same pattern of superlinear returns is observed in benefit to humanity.',
+        'In fame, power, military victories, knowledge, and benefit to humanity, the rich get richer.'
     ]
     
     ac.add_propositions(propositions)
