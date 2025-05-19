@@ -65,6 +65,33 @@ embedding_model = AzureOpenAI(
 #         print("Error occurred for input text:", text)
 #         return None
 
+def store_summary_embeddings(n4j):
+    query = "MATCH (s:Summary) WHERE s.embedding IS NULL RETURN s.gid AS gid, s.content AS content"
+    summaries = n4j.query(query)
+    print(f"Found {len(summaries)} summaries to process.")
+    for record in summaries:
+        gid = record["gid"]
+        content = record["content"]
+        
+        if not content:
+            print(f"Skipping gid {gid} due to empty content.")
+            continue
+        
+        embedding = get_embedding(content)
+        if embedding is None:
+            print(f"Skipping gid {gid} due to embedding failure.")
+            continue
+
+        update_query = """
+        MATCH (s:Summary {gid: $gid})
+        SET s.embedding = $embedding
+        """
+        n4j.query(update_query, {"gid": gid, "embedding": embedding})
+        print(f"Embedded and stored for gid: {gid}")
+    
+    print("All summaries processed.")
+
+
 def get_embedding(text, mod="text-embedding-3-large"):
     try:
         # Attempt to create the embedding
@@ -194,12 +221,19 @@ def find_index_of_largest(nums):
     return largest_original_index
 
 def get_response(n4j, gid, query):
+    print("entering get_response")
     selfcont = ret_context(n4j, gid)
+    print(f"self context: {selfcont}\n")
+
     linkcont = link_context(n4j, gid)
+    print(f"link context: {linkcont}\n")
+
     user_one = "the question is: " + query + "the provided information is:" +  "".join(selfcont)
     res = call_llm(sys_prompt_one,user_one)
+    print(f"first response from LLM: {res}\n")
     user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
     res = call_llm(sys_prompt_two,user_two)
+    print(f"second response from LLM: {res}\n")
     return res
 
 def link_context(n4j, gid):
@@ -210,13 +244,13 @@ def link_context(n4j, gid):
         WHERE n.gid = $gid AND NOT n:Summary
 
         // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERENCES' relationship
-        MATCH (n)-[r:REFERENCE]->(m)
+        MATCH (n)-[r:REFERENCES]->(m)
         WHERE NOT m:Summary
 
         // Find all 'o' nodes connected to each 'm', and include the relationship type,
         // while excluding 'Summary' type nodes and 'REFERENCE' relationship
         MATCH (m)-[s]-(o)
-        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
+        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCES'
 
         // Collect and return details in a structured format
         RETURN n.id AS NodeId1, 
@@ -243,7 +277,7 @@ def ret_context(n4j, gid):
     UNWIND nodes AS n
     UNWIND nodes AS m
     MATCH (n)-[r]-(m)
-    WHERE n.gid = m.gid AND id(n) < id(m) AND NOT n:Summary AND NOT m:Summary // Ensure each pair is processed once and exclude "Summary" nodes in relationships
+    WHERE n.gid = m.gid AND elementID(n) < elementID(m) AND NOT n:Summary AND NOT m:Summary // Ensure each pair is processed once and exclude "Summary" nodes in relationships
     WITH n, m, TYPE(r) AS relType
 
     // Return node IDs and relationship types in structured format
@@ -390,7 +424,7 @@ def ref_link(n4j, gid1, gid2):
         WHERE similarity > threshold
 
         // Create a relationship based on the condition
-        MERGE (m)-[:REFERENCE]->(n)
+        MERGE (m)-[:REFERENCES]->(n)
 
         // Return results
         RETURN n, m
@@ -407,7 +441,12 @@ def str_uuid():
     return str(generated_uuid)
 
 if __name__ == "__main__":
+<<<<<<< HEAD
   
+=======
+    from camel.storages import Neo4jGraph
+
+>>>>>>> eeb104a277900a239648264eb8384e83e6800fff
     # Initialize Neo4jGraph connection
     n4j = Neo4jGraph(
         url=os.getenv("NEO4J_URL"),            
@@ -417,5 +456,8 @@ if __name__ == "__main__":
 
     # Call the function to store embeddings
     store_summary_embeddings(n4j)
+<<<<<<< HEAD
 
+=======
+>>>>>>> eeb104a277900a239648264eb8384e83e6800fff
 

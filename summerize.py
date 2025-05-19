@@ -92,10 +92,11 @@ def process_chunks(content):
     with ThreadPoolExecutor() as executor:
         try:
             responses = list(executor.map(call_openai_api, chunks))
+            print(f"responses in summerize.py/process_chunks = {responses}")
         except BadRequestError:
             print("Skipping chunk due to content filter violation.")
             responses = []
-    print(responses)
+    # print(responses)
     return responses
 
 def delete_problematic_file(content):
