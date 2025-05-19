@@ -441,23 +441,12 @@ def str_uuid():
     return str(generated_uuid)
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-  
-=======
-    from camel.storages import Neo4jGraph
 
->>>>>>> eeb104a277900a239648264eb8384e83e6800fff
     # Initialize Neo4jGraph connection
     n4j = Neo4jGraph(
         url=os.getenv("NEO4J_URL"),            
         username=os.getenv("NEO4J_USERNAME"),           
         password=os.getenv("NEO4J_PASSWORD")   
     )
-
     # Call the function to store embeddings
     store_summary_embeddings(n4j)
-<<<<<<< HEAD
-
-=======
->>>>>>> eeb104a277900a239648264eb8384e83e6800fff
-
