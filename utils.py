@@ -338,6 +338,31 @@ def merge_similar_nodes(n4j, gid):
     
     return result
 
+def store_summary_embeddings(n4j):
+    query = "MATCH (s:Summary) WHERE s.embedding IS NULL RETURN s.gid AS gid, s.content AS content"
+    summaries = n4j.query(query)
+    print(f"Found {len(summaries)} summaries to process.")
+    for record in summaries:
+        gid = record["gid"]
+        content = record["content"]
+        
+        if not content:
+            print(f"Skipping gid {gid} due to empty content.")
+            continue
+        
+        embedding = get_embedding(content)
+        if embedding is None:
+            print(f"Skipping gid {gid} due to embedding failure.")
+            continue
+
+        update_query = """
+        MATCH (s:Summary {gid: $gid})
+        SET s.embedding = $embedding
+        """
+        n4j.query(update_query, {"gid": gid, "embedding": embedding})
+        print(f"Embedded and stored for gid: {gid}")
+    
+    print("All summaries processed.")
 
 def ref_link(n4j, gid1, gid2):
     trinity_query = """
@@ -380,5 +405,17 @@ def str_uuid():
 
     # Convert UUID to a string
     return str(generated_uuid)
+
+if __name__ == "__main__":
+  
+    # Initialize Neo4jGraph connection
+    n4j = Neo4jGraph(
+        url=os.getenv("NEO4J_URL"),            
+        username=os.getenv("NEO4J_USERNAME"),           
+        password=os.getenv("NEO4J_PASSWORD")   
+    )
+
+    # Call the function to store embeddings
+    store_summary_embeddings(n4j)
 
 
