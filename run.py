@@ -61,8 +61,8 @@ else:
     # Set Neo4j instance
     n4j = Neo4jGraph(
         url=url,
-        username=username,             # Default username
-        password=password     # Replace 'yourpassword' with your actual password
+        username=username,             
+        password=password     
     )
 
     if args.construct_graph: 
@@ -99,6 +99,7 @@ else:
     if args.inference:
         question = load_high("./prompt.txt")
         sum = process_chunks(question)
+        print(f'This is the summary in run.py: {sum}')
         gid = seq_ret(n4j, sum)
         response = get_response(n4j, gid, question)
         print(f'This is the response: {response}')
