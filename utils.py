@@ -1,4 +1,4 @@
-from openai import OpenAI
+# from openai import OpenAI
 import os
 from neo4j import GraphDatabase
 import numpy as np
@@ -6,6 +6,10 @@ from camel.storages import Neo4jGraph
 import uuid
 from summerize import process_chunks
 import openai
+from openai import AzureOpenAI
+# from langchain_openai import AzureOpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
+# from langchain_openai import AzureChatOpenAI
 
 sys_prompt_one = """
 Please answer the question using insights supported by provided graph-based data relevant to medical information.
@@ -15,18 +19,109 @@ sys_prompt_two = """
 Modify the response to the question using the provided references. Include precise citations relevant to your answer. You may use multiple citations simultaneously, denoting each with the reference index number. For example, cite the first and third documents as [1][3]. If the references do not pertain to the response, simply provide a concise answer to the original question.
 """
 
-# Add your own OpenAI API key
-openai_api_key = os.getenv("OPENAI_API_KEY")
+azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
+azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
+azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+embedding_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT")
 
-def get_embedding(text, mod = "text-embedding-3-small"):
-    client = OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
+# llm = AzureChatOpenAI(
+#             model="gpt-4o-mini", 
+#             api_key=azure_openai_api_key,
+#             api_version="2024-08-01-preview",
+#             azure_endpoint=azure_endpoint,
+#             azure_deployment=azure_deployment,
+#             temperature=0.5,
+#             max_tokens=500, 
+#             n=1,
+#             stop_sequences=None
+#     )
 
-    response = client.embeddings.create(
-        input=text,
-        model=mod
-    )
+llm = AzureOpenAI(
+  azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"), 
+  api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
+  api_version="2024-08-01-preview"
+)
 
-    return response.data[0].embedding
+embedding_model = AzureOpenAI(
+  azure_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT"), 
+  api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
+  api_version="2023-05-15"
+)
+
+# def get_embedding(text, mod = "text-embedding-3-large"):
+#     try:
+#         embeddings_client = AzureOpenAIEmbeddings(
+#             model=mod,
+#             deployment=azure_deployment,
+#             openai_api_key=azure_openai_api_key,
+#             azure_endpoint=azure_endpoint,
+#             openai_api_version="2024-08-01-preview"
+#         )
+#         response = embeddings_client.embed_query(text)
+#         print(response)
+#         return response
+#     except Exception as e:
+#         print("Embedding error:", e)
+#         print("Error occurred for input text:", text)
+#         return None
+
+def store_summary_embeddings(n4j):
+    query = "MATCH (s:Summary) WHERE s.embedding IS NULL RETURN s.gid AS gid, s.content AS content"
+    summaries = n4j.query(query)
+    print(f"Found {len(summaries)} summaries to process.")
+    for record in summaries:
+        gid = record["gid"]
+        content = record["content"]
+        
+        if not content:
+            print(f"Skipping gid {gid} due to empty content.")
+            continue
+        
+        embedding = get_embedding(content)
+        if embedding is None:
+            print(f"Skipping gid {gid} due to embedding failure.")
+            continue
+
+        update_query = """
+        MATCH (s:Summary {gid: $gid})
+        SET s.embedding = $embedding
+        """
+        n4j.query(update_query, {"gid": gid, "embedding": embedding})
+        print(f"Embedded and stored for gid: {gid}")
+    
+    print("All summaries processed.")
+
+
+def get_embedding(text, mod="text-embedding-3-large"):
+    try:
+        # Attempt to create the embedding
+        response = embedding_model.embeddings.create(input=text, model=mod)
+        return response.data[0].embedding
+        
+    except Exception as e:
+        # Extract detailed error information
+        error_type = type(e).__name__
+        error_msg = str(e)
+        
+        # Additional details for API-specific errors (e.g., OpenAI)
+        status_code = getattr(e, 'status_code', None)
+        error_code = getattr(e, 'code', None)
+        
+        # Construct a comprehensive error message
+        print("\n--- Embedding Error Details ---")
+        print(f"Error Type: {error_type}")
+        print(f"Message: {error_msg}")
+        
+        if status_code is not None:
+            print(f"HTTP Status Code: {status_code}")
+        if error_code is not None:
+            print(f"API Error Code: {error_code}")
+            
+        print(f"Model Used: {mod}")
+        print(f"Input Text (length {len(text)}): {text[:100] + '...' if len(text) > 100 else text}")  # Truncate long text
+        print("------------------------------\n")
+        
+        return None
 
 def fetch_texts(n4j):
     # Fetch the text for each node
@@ -48,10 +143,12 @@ def add_nodes_emb(n4j):
             # Store embedding back in the node
             add_embeddings(n4j, node['id'], embedding)
 
-def add_ge_emb(graph_element):
+def add_ge_emb(graph_element, file_name, args):
     for node in graph_element.nodes:
         emb = get_embedding(node.id)
         node.properties['embedding'] = emb
+        if args.dataset == 'books':
+            node.properties['reference'] = file_name
     return graph_element
 
 def add_gid(graph_element, gid):
@@ -79,17 +176,38 @@ def add_sum(n4j,content,gid):
 
     return s
 
+# def call_llm(sys, user):
+#     response = AzureOpenAI.chat.completions.create(
+#         model="gpt-4o-mini",
+#         messages=[
+#             {"role": "system", "content": sys},
+#             {"role": "user", "content": f" {user}"},
+#         ],
+#         max_tokens=500,
+#         n=1,
+#         stop=None,
+#         temperature=0.5,
+#     )
+#     return response.choices[0].message.content
+
+# def call_llm(sys, user):
+#     response = llm.invoke([
+#             {"role": "system", "content": sys},
+#             {"role": "user", "content": f" {user}"},
+#         ])
+#     return response.content
+
 def call_llm(sys, user):
-    response = openai.chat.completions.create(
+    response = llm.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": sys},
-            {"role": "user", "content": f" {user}"},
+        {"role": "system", "content": sys},
+        {"role": "user", "content": f" {user}"}
         ],
-        max_tokens=500,
-        n=1,
-        stop=None,
         temperature=0.5,
+        # max_tokens=16384,
+        n=1,
+        stop=None
     )
     return response.choices[0].message.content
 
@@ -103,12 +221,19 @@ def find_index_of_largest(nums):
     return largest_original_index
 
 def get_response(n4j, gid, query):
+    print("entering get_response")
     selfcont = ret_context(n4j, gid)
+    print(f"self context: {selfcont}\n")
+
     linkcont = link_context(n4j, gid)
+    print(f"link context: {linkcont}\n")
+
     user_one = "the question is: " + query + "the provided information is:" +  "".join(selfcont)
     res = call_llm(sys_prompt_one,user_one)
+    print(f"first response from LLM: {res}\n")
     user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
     res = call_llm(sys_prompt_two,user_two)
+    print(f"second response from LLM: {res}\n")
     return res
 
 def link_context(n4j, gid):
@@ -119,13 +244,13 @@ def link_context(n4j, gid):
         WHERE n.gid = $gid AND NOT n:Summary
 
         // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERENCES' relationship
-        MATCH (n)-[r:REFERENCE]->(m)
+        MATCH (n)-[r:REFERENCES]->(m)
         WHERE NOT m:Summary
 
         // Find all 'o' nodes connected to each 'm', and include the relationship type,
         // while excluding 'Summary' type nodes and 'REFERENCE' relationship
         MATCH (m)-[s]-(o)
-        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
+        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCES'
 
         // Collect and return details in a structured format
         RETURN n.id AS NodeId1, 
@@ -152,7 +277,7 @@ def ret_context(n4j, gid):
     UNWIND nodes AS n
     UNWIND nodes AS m
     MATCH (n)-[r]-(m)
-    WHERE n.gid = m.gid AND id(n) < id(m) AND NOT n:Summary AND NOT m:Summary // Ensure each pair is processed once and exclude "Summary" nodes in relationships
+    WHERE n.gid = m.gid AND elementID(n) < elementID(m) AND NOT n:Summary AND NOT m:Summary // Ensure each pair is processed once and exclude "Summary" nodes in relationships
     WITH n, m, TYPE(r) AS relType
 
     // Return node IDs and relationship types in structured format
@@ -196,6 +321,83 @@ def merge_similar_nodes(n4j, gid):
         result = n4j.query(merge_query)
     return result
 
+# def merge_similar_nodes(n4j, gid):
+    """
+    Merges similar nodes in the Neo4j graph based on cosine similarity of their embeddings.
+
+    Args:
+        n4j: Neo4j connection object.
+        gid: Graph identifier to scope the merge operation.
+
+    Returns:
+        Result of the merge query execution.
+    """
+    # Define your merge query with safeguards for null embeddings
+    if gid:
+        merge_query = """
+            WITH 0.5 AS threshold
+            MATCH (n), (m)
+            WHERE NOT n:Summary AND NOT m:Summary 
+              AND n.gid = m.gid 
+              AND n.gid = $gid 
+              AND n <> m 
+              AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) 
+              AND n.embedding IS NOT NULL 
+              AND m.embedding IS NOT NULL
+            WITH n, m, gds.similarity.cosine(n.embedding, m.embedding) AS similarity
+            WHERE similarity > threshold
+            WITH head(collect([n, m])) as nodes
+            CALL apoc.refactor.mergeNodes(nodes, {properties: 'overwrite', mergeRels: true})
+            YIELD node
+            RETURN count(*)
+        """
+        result = n4j.query(merge_query, {'gid': gid})
+    else:
+        merge_query = """
+            WITH 0.5 AS threshold
+            MATCH (n), (m)
+            WHERE NOT n:Summary AND NOT m:Summary 
+              AND n <> m 
+              AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) 
+              AND n.embedding IS NOT NULL 
+              AND m.embedding IS NOT NULL
+            WITH n, m, gds.similarity.cosine(n.embedding, m.embedding) AS similarity
+            WHERE similarity > threshold
+            WITH head(collect([n, m])) as nodes
+            CALL apoc.refactor.mergeNodes(nodes, {properties: 'overwrite', mergeRels: true})
+            YIELD node
+            RETURN count(*)
+        """
+        result = n4j.query(merge_query)
+    
+    return result
+
+def store_summary_embeddings(n4j):
+    query = "MATCH (s:Summary) WHERE s.embedding IS NULL RETURN s.gid AS gid, s.content AS content"
+    summaries = n4j.query(query)
+    print(f"Found {len(summaries)} summaries to process.")
+    for record in summaries:
+        gid = record["gid"]
+        content = record["content"]
+        
+        if not content:
+            print(f"Skipping gid {gid} due to empty content.")
+            continue
+        
+        embedding = get_embedding(content)
+        if embedding is None:
+            print(f"Skipping gid {gid} due to embedding failure.")
+            continue
+
+        update_query = """
+        MATCH (s:Summary {gid: $gid})
+        SET s.embedding = $embedding
+        """
+        n4j.query(update_query, {"gid": gid, "embedding": embedding})
+        print(f"Embedded and stored for gid: {gid}")
+    
+    print("All summaries processed.")
+
 def ref_link(n4j, gid1, gid2):
     trinity_query = """
         // Match nodes from Graph A
@@ -222,7 +424,7 @@ def ref_link(n4j, gid1, gid2):
         WHERE similarity > threshold
 
         // Create a relationship based on the condition
-        MERGE (m)-[:REFERENCE]->(n)
+        MERGE (m)-[:REFERENCES]->(n)
 
         // Return results
         RETURN n, m
@@ -238,4 +440,13 @@ def str_uuid():
     # Convert UUID to a string
     return str(generated_uuid)
 
+if __name__ == "__main__":
 
+    # Initialize Neo4jGraph connection
+    n4j = Neo4jGraph(
+        url=os.getenv("NEO4J_URL"),            
+        username=os.getenv("NEO4J_USERNAME"),           
+        password=os.getenv("NEO4J_PASSWORD")   
+    )
+    # Call the function to store embeddings
+    store_summary_embeddings(n4j)
