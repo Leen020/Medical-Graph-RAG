@@ -205,7 +205,7 @@ def call_llm(sys, user):
         {"role": "user", "content": f" {user}"}
         ],
         temperature=0.5,
-        # max_tokens=16384,
+        max_tokens=500, # max tokens was max
         n=1,
         stop=None
     )
