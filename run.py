@@ -97,9 +97,26 @@ else:
                 merge_similar_nodes(n4j, None)
 
     if args.inference:
-        question = load_high("./prompt.txt")
-        sum = process_chunks(question)
-        print(f'This is the summary in run.py: {sum}')
-        gid = seq_ret(n4j, sum)
-        response = get_response(n4j, gid, question)
-        print(f'This is the response: {response}')
+        questions = load_high("./prompt.txt").split("\n\n")  # assuming questions are separated by double newline
+        questions = [q.strip() for q in questions if q.strip()]  # clean up
+
+        all_responses = []
+
+        for idx, question in enumerate(questions):
+            print(f"\nProcessing Question {idx+1}: {question}\n")
+
+            # Generate summary for this single question
+            summaries = process_chunks(question)  # returns a list (may contain 1 item)
+
+            for summary in summaries:
+                # Retrieve relevant subgraph
+                gid = seq_ret(n4j, summary)
+
+                # Query graph and get response
+                response = get_response(n4j, gid, question)
+                all_responses.append((question, response))
+
+        # Print or log all responses
+        for i, (q, r) in enumerate(all_responses):
+            print(f"\nQ{i+1}: {q}\nAnswer: {r}\n")
+
