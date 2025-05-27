@@ -2,7 +2,7 @@ import os
 import json
 import re
 import argparse
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 from camel.storages import Neo4jGraph
 from summerize import process_chunks
 from retrieve import seq_ret
@@ -132,6 +132,11 @@ def evaluate_mcq_performance(results):
         print(f"  Precision: {letter_metrics['precision']:.4f}")
         print(f"  Recall: {letter_metrics['recall']:.4f}")
         print(f"  F1 Score: {letter_metrics['f1']:.4f}")
+    
+    # Generate and print classification report
+    target_names = [f"Option {letter}" for letter in sorted(set(true_answers))]
+    print("\nClassification Report:")
+    print(classification_report(true_nums, pred_nums, target_names=target_names, zero_division=0))
     
     return metrics
 
