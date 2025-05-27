@@ -20,3 +20,4 @@ processing.log
 *.log
 /.vs
 *.log
+*.json
