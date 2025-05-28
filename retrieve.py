@@ -19,13 +19,13 @@ def fetch_embeddings_from_neo4j(n4j):
     return contents, gids, np.array(embeddings)
 
 
-def build_knn_index(embeddings, n_neighbors=10):
+def build_knn_index(embeddings, n_neighbors=60):
     knn = NearestNeighbors(n_neighbors=n_neighbors, metric="cosine")
     knn.fit(embeddings)
     return knn
 
 
-def seq_ret(n4j, sumq, top_k=50):
+def seq_ret(n4j, sumq, top_k=16):
     contents, gids, embeddings = fetch_embeddings_from_neo4j(n4j)
 
     if not embeddings.size:
