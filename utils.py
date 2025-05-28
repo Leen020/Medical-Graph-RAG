@@ -16,7 +16,7 @@ Please answer the question using insights supported by provided graph-based data
 """
 
 sys_prompt_two = """
-Modify the response to the question using the provided references. Include precise citations relevant to your answer. You may use multiple citations simultaneously, denoting each with the reference index number. For example, cite the first and third documents as [1][3]. If the references do not pertain to the response, simply provide a concise answer to the original question.
+Modify the response to the question using the provided references. Include precise citations relevant to your answer. You may use multiple citations simultaneously, denoting each with the reference index number below you explanation with the reference title. For example, cite the first and third documents as [1][3]. If the references do not pertain to the response, simply provide a concise explaining answer to the original question 
 """
 
 azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -198,8 +198,15 @@ def get_response(n4j, gid, query):
     linkcont = link_context(n4j, gid)
     user_one = "the question is: " + query + "the provided information is:" +  "".join(selfcont)
     res = call_llm(sys_prompt_one,user_one)
+<<<<<<< Updated upstream
     user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
     res = call_llm(sys_prompt_two,user_two)
+=======
+    print(f"First response from LLM: {res}\n")
+    user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
+    res = call_llm(sys_prompt_two,user_two)
+    print(f"Final response from LLM: {res}\n")
+>>>>>>> Stashed changes
     return res
 
 def link_context(n4j, gid):
