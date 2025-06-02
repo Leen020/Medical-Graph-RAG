@@ -139,9 +139,7 @@ else:
                     # Query graph and get response
                     response = get_response(n4j, gid, question)
                     all_responses.append((question, response))
-            
-            with open("response.txt", "w", encoding="utf-8") as output_file:
-                output_file.write(response)
+        
     
     elif args.evaluate and args.mcq_eval:
         # Load previously saved inference results and evaluate using mcq_evaluation.py
