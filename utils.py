@@ -12,12 +12,13 @@ from langchain_community.embeddings import OpenAIEmbeddings
 # from langchain_openai import AzureChatOpenAI
 
 sys_prompt_one = """
-Please answer the question using insights supported by provided graph-based data relevant to medical information.
+Lütfen soruyu, sağlanan tıbbi bilgiyle ilgili grafik tabanlı veriler tarafından desteklenen bulguları kullanarak yanıtlayın.
 """
 
 sys_prompt_two = """
-Modify the response to the question using the provided references. Include precise citations relevant to your answer. You may use multiple citations simultaneously, denoting each with the reference index number. For example, cite the first and third documents as [1][3]. If the references do not pertain to the response, simply provide a concise answer to the original question.
+Yanıtı verilen referansları kullanarak düzenleyin. Cevabınıza ilişkin doğru atıfları ekleyin. Birden fazla atıfı aynı anda kullanabilirsiniz; her birini referans dizin numarasıyla belirtin. Örneğin, ilk ve üçüncü belgeleri [1][3] biçiminde gösterin. Referanslar yanıtla ilgili değilse, yalnızca orijinal soruya kısa ve öz bir yanıt verin.
 """
+
 
 azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
@@ -228,11 +229,21 @@ def get_response(n4j, gid, query):
     linkcont = link_context(n4j, gid)
     print(f"link context: {linkcont}\n")
 
-    user_one = "the question is: " + query + "the provided information is:" +  "".join(selfcont)
-    res = call_llm(sys_prompt_one,user_one)
+    # Soru + bağlam
+    user_one = (
+        "Soru: " + query +
+        " | Sağlanan bilgiler: " + "".join(selfcont)
+    )
+    res = call_llm(sys_prompt_one, user_one)
     print(f"first response from LLM: {res}\n")
-    user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
-    res = call_llm(sys_prompt_two,user_two)
+
+    # Önceki yanıt + referanslar
+    user_two = (
+        "Soru: " + query +
+        " | Önceki yanıt: " + res +
+        " | Referanslar: " + "".join(linkcont)
+    )
+    res = call_llm(sys_prompt_two, user_two)
     print(f"second response from LLM: {res}\n")
     return res
 
@@ -262,7 +273,11 @@ def link_context(n4j, gid):
     for r in res:
         # Expand each set of connections into separate entries with n and m
         for ind, connection in enumerate(r["Connections"]):
-            cont.append("Reference " + str(ind) + ": " + r["NodeId1"] + "has the reference that" + r['Mid'] + connection['RelationType'] + connection['Oid'])
+            cont.append(
+                "Referans " + str(ind) + ": "          
+                + r["NodeId1"] + " düğümü şu referansa sahiptir: "  
+                + r["Mid"] + connection["RelationType"] + connection["Oid"]
+            )
     return cont
 
 def ret_context(n4j, gid):

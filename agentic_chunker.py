@@ -98,24 +98,28 @@ class AgenticChunker:
                 (
                     "system",
                     """
-                    You are the steward of a group of chunks which represent groups of sentences that talk about a similar topic
-                    A new proposition was just added to one of your chunks, you should generate a very brief 1-sentence summary which will inform viewers what a chunk group is about.
+                    Benzer bir konudan bahseden cümle gruplarını temsil eden chunk kümelerinin sorumlususunuz.
+                    Chunk’larınızdan birine yeni bir proposition eklendi; izleyicilere bu chunk grubunun ne hakkında
+                    olduğunu bildirecek, çok kısa (1 cümle) bir özet üretmelisiniz.
 
-                    A good summary will say what the chunk is about, and give any clarifying instructions on what to add to the chunk.
+                    İyi bir özet, chunk’ın konusunu belirtir ve chunk’a ne eklenebileceğine dair net talimatlar sunar.
 
-                    You will be given a group of propositions which are in the chunk and the chunks current summary.
+                    Size, chunk içindeki proposition’ların listesi ve chunk’ın mevcut özeti verilecek.
 
-                    Your summaries should anticipate generalization. If you get a proposition about apples, generalize it to food.
-                    Or month, generalize it to "date and times".
+                    Özetleriniz genelleştirmeyi göz önünde bulundurmalıdır. Örneğin, bir proposition elmalarla ilgiliyse
+                    bunu “yiyecek” olarak genelleyin; bir ay adı geçiyorsa “tarih ve zaman” olarak genelleyin.
 
-                    Example:
-                    Input: Proposition: Greg likes to eat pizza
-                    Output: This chunk contains information about the types of food Greg likes to eat.
+                    Örnek:
+                    Girdi: Proposition: Greg likes to eat pizza
+                    Çıktı: Bu chunk, Greg’in yemekten hoşlandığı yiyecek türleri hakkında bilgiler içerir.
 
-                    Only respond with the chunk new summary, nothing else.
+                    Yalnızca chunk’ın yeni özetini döndürün, başka hiçbir şey yazmayın.
                     """,
                 ),
-                ("user", "Chunk's propositions:\n{proposition}\n\nCurrent chunk summary:\n{current_summary}"),
+                (
+                    "user",
+                    "Chunk'ın proposition'ları:\n{proposition}\n\nMevcut chunk özeti:\n{current_summary}",
+                ),
             ]
         )
 
@@ -123,10 +127,11 @@ class AgenticChunker:
 
         new_chunk_summary = runnable.invoke({
             "proposition": "\n".join(chunk['propositions']),
-            "current_summary" : chunk['summary']
+            "current_summary": chunk['summary']
         }).content
 
         return new_chunk_summary
+
     
     def _update_chunk_title(self, chunk):
         """
@@ -137,24 +142,29 @@ class AgenticChunker:
                 (
                     "system",
                     """
-                    You are the steward of a group of chunks which represent groups of sentences that talk about a similar topic
-                    A new proposition was just added to one of your chunks, you should generate a very brief updated chunk title which will inform viewers what a chunk group is about.
+                    Benzer bir konudan bahseden cümle gruplarını temsil eden chunk kümelerinin sorumlususunuz.
+                    Chunk’larınızdan birine yeni bir proposition eklendi; izleyicilere bu chunk grubunun ne
+                    hakkında olduğunu bildirecek, çok kısa bir güncellenmiş başlık üretmelisiniz.
 
-                    A good title will say what the chunk is about.
+                    İyi bir başlık, chunk’ın konusunu açıkça belirtir.
 
-                    You will be given a group of propositions which are in the chunk, chunk summary and the chunk title.
+                    Size chunk’taki proposition’ların listesi, chunk özeti ve mevcut chunk başlığı verilecek.
 
-                    Your title should anticipate generalization. If you get a proposition about apples, generalize it to food.
-                    Or month, generalize it to "date and times".
+                    Başlığınız genelleştirmeyi göz önünde bulundurmalıdır. Örneğin, bir proposition elmalarla
+                    ilgiliyse bunu “yiyecek” olarak genelleyin; bir ay adı geçiyorsa “tarih ve zaman” olarak
+                    genelleyin.
 
-                    Example:
-                    Input: Summary: This chunk is about dates and times that the author talks about
-                    Output: Date & Times
+                    Örnek:
+                    Girdi: Summary: This chunk is about dates and times that the author talks about
+                    Çıktı: Dates & Times
 
-                    Only respond with the new chunk title, nothing else.
+                    Yalnızca yeni chunk başlığını döndürün, başka hiçbir şey yazmayın.
                     """,
                 ),
-                ("user", "Chunk's propositions:\n{proposition}\n\nChunk summary:\n{current_summary}\n\nCurrent chunk title:\n{current_title}"),
+                (
+                    "user",
+                    "Chunk'ın proposition'ları:\n{proposition}\n\nChunk özeti:\n{current_summary}\n\nMevcut chunk başlığı:\n{current_title}",
+                ),
             ]
         )
 
@@ -162,8 +172,8 @@ class AgenticChunker:
 
         updated_chunk_title = runnable.invoke({
             "proposition": "\n".join(chunk['propositions']),
-            "current_summary" : chunk['summary'],
-            "current_title" : chunk['title']
+            "current_summary": chunk['summary'],
+            "current_title": chunk['title']
         }).content
 
         return updated_chunk_title
@@ -174,24 +184,27 @@ class AgenticChunker:
                 (
                     "system",
                     """
-                    You are the steward of a group of chunks which represent groups of sentences that talk about a similar topic
-                    You should generate a very brief 1-sentence summary which will inform viewers what a chunk group is about.
+                    Benzer konulardan bahseden cümle gruplarını (chunk’ları) yöneten sorumlusunuz.
+                    İzleyicilere bu chunk grubunun ne hakkında olduğunu bildirecek, çok kısa (1 cümle) bir özet üretmelisiniz.
 
-                    A good summary will say what the chunk is about, and give any clarifying instructions on what to add to the chunk.
+                    İyi bir özet, chunk’ın konusunu belirtmeli ve chunk’a neler eklenebileceğine dair açıklayıcı talimatlar vermelidir.
 
-                    You will be given a proposition which will go into a new chunk. This new chunk needs a summary.
+                    Size, yeni bir chunk’a eklenecek bir proposition verilecek. Bu yeni chunk’ın bir özete ihtiyacı var.
 
-                    Your summaries should anticipate generalization. If you get a proposition about apples, generalize it to food.
-                    Or month, generalize it to "date and times".
+                    Özetiniz genelleştirmeyi göz önünde bulundurmalıdır. Bir proposition elmalarla ilgiliyse “yiyecek” olarak genelleyin;
+                    bir ay adı içeriyorsa “tarih ve zaman” olarak genelleyin.
 
-                    Example:
+                    Örnek:
                     Input: Proposition: Greg likes to eat pizza
                     Output: This chunk contains information about the types of food Greg likes to eat.
 
-                    Only respond with the new chunk summary, nothing else.
+                    Yalnızca yeni chunk özetini döndürün, başka hiçbir şey yazmayın.
                     """,
                 ),
-                ("user", "Determine the summary of the new chunk that this proposition will go into:\n{proposition}"),
+                (
+                    "user",
+                    "Bu proposition'ın ekleneceği yeni chunk'ın özetini belirleyin:\n{proposition}"
+                ),
             ]
         )
 
@@ -209,24 +222,27 @@ class AgenticChunker:
                 (
                     "system",
                     """
-                    You are the steward of a group of chunks which represent groups of sentences that talk about a similar topic
-                    You should generate a very brief few word chunk title which will inform viewers what a chunk group is about.
+                    Benzer bir konudan bahseden cümle gruplarını (chunk’ları) yöneten sorumlusunuz.
+                    İzleyicilere bu chunk grubunun ne hakkında olduğunu bildirecek, birkaç kelimelik çok kısa bir chunk başlığı üretmelisiniz.
 
-                    A good chunk title is brief but encompasses what the chunk is about
+                    İyi bir chunk başlığı kısadır ama chunk’ın konusunu kapsar.
 
-                    You will be given a summary of a chunk which needs a title
+                    Size başlığa ihtiyaç duyan bir chunk özetini vereceğiz.
 
-                    Your titles should anticipate generalization. If you get a proposition about apples, generalize it to food.
-                    Or month, generalize it to "date and times".
+                    Başlıklarınız genelleştirmeyi göz önünde bulundurmalıdır. Bir proposition elmalarla ilgiliyse “yiyecek” olarak genelleyin;
+                    bir ay adı içeriyorsa “tarih ve zaman” olarak genelleyin.
 
-                    Example:
-                    Input: Summary: This chunk is about dates and times that the author talks about
-                    Output: Date & Times
+                    Örnek:
+                    Girdi: Summary: This chunk is about dates and times that the author talks about
+                    Çıktı: Dates & Times
 
-                    Only respond with the new chunk title, nothing else.
+                    Yalnızca yeni chunk başlığını döndürün, başka hiçbir şey yazmayın.
                     """,
                 ),
-                ("user", "Determine the title of the chunk that this summary belongs to:\n{summary}"),
+                (
+                    "user",
+                    "Bu özetin ait olduğu chunk'ın başlığını belirleyin:\n{summary}"
+                ),
             ]
         )
 
@@ -279,31 +295,38 @@ class AgenticChunker:
                 (
                     "system",
                     """
-                    Determine whether or not the "Proposition" should belong to any of the existing chunks.
+                    "Proposition"ın mevcut chunk'lardan herhangi birine ait olup olmadığını belirleyin.
 
-                    A proposition should belong to a chunk of their meaning, direction, or intention are similar.
-                    The goal is to group similar propositions and chunks.
+                    Bir proposition, anlamı, yönü veya amacı benzerse bir chunk'a eklenmelidir.
+                    Amaç, benzer proposition’ları ve chunk’ları gruplaştırmaktır.
 
-                    If you think a proposition should be joined with a chunk, return the chunk id.
-                    If you do not think an item should be joined with an existing chunk, just return "No chunks"
+                    Bir proposition’ın mevcut bir chunk ile birleştirilmesi gerektiğini düşünüyorsanız, ilgili chunk kimliğini döndürün.
+                    Bir öğenin mevcut chunk’lardan herhangi biriyle birleştirilmemesi gerektiğini düşünüyorsanız yalnızca "No chunks" döndürün.
 
-                    Example:
+                    Örnek:
                     Input:
-                        - Proposition: "Greg really likes hamburgers"
+                        - Proposition: "Greg köfte yemekten gerçekten hoşlanır"
                         - Current Chunks:
                             - Chunk ID: 2n4l3
-                            - Chunk Name: Places in San Francisco
-                            - Chunk Summary: Overview of the things to do with San Francisco Places
+                            - Chunk Name: İstanbul’daki Yerler
+                            - Chunk Summary: İstanbul’da gezilecek yerlerle ilgili genel bakış
 
                             - Chunk ID: 93833
-                            - Chunk Name: Food Greg likes
-                            - Chunk Summary: Lists of the food and dishes that Greg likes
+                            - Chunk Name: Greg'in Sevdiği Yiyecekler
+                            - Chunk Summary: Greg'in sevdiği yiyecek ve yemeklerin listesi
                     Output: 93833
                     """,
                 ),
-                ("user", "Current Chunks:\n--Start of current chunks--\n{current_chunk_outline}\n--End of current chunks--"),
-                ("user", "Determine if the following statement should belong to one of the chunks outlined:\n{proposition}"),
+                (
+                    "user",
+                    "Mevcut Chunk'lar:\n--Mevcut chunk'ların başlangıcı--\n{current_chunk_outline}\n--Mevcut chunk'ların sonu--"
+                ),
+                (
+                    "user",
+                    "Aşağıdaki ifadeyi yukarıda listelenen chunk'lardan birine dahil etmek gerekip gerekmediğini belirleyin:\n{proposition}"
+                ),
             ]
+
         )
 
         runnable = PROMPT | self.llm
