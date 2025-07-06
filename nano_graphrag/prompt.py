@@ -23,7 +23,7 @@ For each claim, extract the following information:
 
 Format each claim as (<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
 
-3. Return output in English as a single list of all the claims identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Return output in Turkish as a single list of all the claims identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
 
 4. When finished, output {completion_delimiter}
 
@@ -74,6 +74,7 @@ The report should include the following sections:
 - DETAILED FINDINGS: A list of 5-10 key insights about the community. Each insight should have a short summary followed by multiple paragraphs of explanatory text grounded according to the grounding rules below. Be comprehensive.
 
 Return output as a well-formed JSON-formatted string with the following format:
+All free-text content ("report") must be written in Turkish.
     {{
         "title": <report_title>,
         "summary": <executive_summary>,
@@ -230,7 +231,7 @@ For each pair of related entities, extract the following information:
 - relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
  Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
 
-3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Return output in Turkish as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
 
 4. When finished, output {completion_delimiter}
 
@@ -319,7 +320,7 @@ PROMPTS[
 Given one or two entities, and a list of descriptions, all related to the same entity or group of entities.
 Please concatenate all of these into a single, comprehensive description. Make sure to include information collected from all the descriptions.
 If the provided descriptions are contradictory, please resolve the contradictions and provide a single, coherent summary.
-Make sure it is written in third person, and include the entity names so we the have full context.
+Make sure it is written in third person, written in Turkish, and include the entity names so we the have full context.
 
 #######
 -Data-
@@ -409,6 +410,7 @@ Do not include information where the supporting evidence for it is not provided.
 {response_type}
 
 Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
+All content **must be written in Turkish**.
 """
 
 PROMPTS[
@@ -488,6 +490,7 @@ The response should be JSON formatted as follows:
         {{"description": "Description of point 2 [Data: Reports (report ids)]", "score": score_value}}
     ]
 }}
+All content **must be written in Turkish**.
 """
 
 PROMPTS[
@@ -564,6 +567,7 @@ Do not include information where the supporting evidence for it is not provided.
 {response_type}
 
 Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
+All content **must be written in Turkish**.
 """
 
-PROMPTS["fail_response"] = "Sorry, I'm not able to provide an answer to that question."
+PROMPTS["fail_response"] = "Üzgünüm, bu soruya yanıt veremiyorum."
