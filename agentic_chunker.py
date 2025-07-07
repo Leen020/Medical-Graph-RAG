@@ -270,7 +270,7 @@ class AgenticChunker:
             'chunk_index' : len(self.chunks)
         }
         if self.print_logging:
-            print (f"Created new chunk ({new_chunk_id}): {new_chunk_title}")
+            print (f"Yeni chunk oluşturuldu ({new_chunk_id}): {new_chunk_title}")
     
     def get_chunk_outline(self):
         """
@@ -280,8 +280,7 @@ class AgenticChunker:
         chunk_outline = ""
 
         for chunk_id, chunk in self.chunks.items():
-            single_chunk_string = f"""Chunk ID: {chunk['chunk_id']}\nChunk Name: {chunk['title']}\nChunk Summary: {chunk['summary']}\n\n"""
-        
+            single_chunk_string = f"""Chunk ID: {chunk['chunk_id']}\nChunk Adı: {chunk['title']}\nChunk Özeti: {chunk['summary']}\n\n"""
             chunk_outline += single_chunk_string
         
         return chunk_outline

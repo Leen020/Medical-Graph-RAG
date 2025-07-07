@@ -3,53 +3,54 @@ PROMPTS = {}
 
 PROMPTS[
     "claim_extraction"
-] = """-Target activity-
-You are an intelligent assistant that helps a human analyst to analyze claims against certain entities presented in a text document.
+] = """-Hedef aktivite-
+İnsan analistine, bir metin belgesinde belirli varlıklara yönelik iddiaları analiz etmede yardımcı olan akıllı bir asistansınız.
 
--Goal-
-Given a text document that is potentially relevant to this activity, an entity specification, and a claim description, extract all entities that match the entity specification and all claims against those entities.
+-Hedef-
+Potansiyel olarak bu faaliyete konu olabilecek bir metin belgesi, bir varlık tanımı ve bir iddia açıklaması verildiğinde, tanıma uyan tüm varlıkları ve bu varlıklara yönelik tüm iddiaları çıkarın.
 
--Steps-
-1. Extract all named entities that match the predefined entity specification. Entity specification can either be a list of entity names or a list of entity types.
-2. For each entity identified in step 1, extract all claims associated with the entity. Claims need to match the specified claim description, and the entity should be the subject of the claim.
-For each claim, extract the following information:
-- Subject: name of the entity that is subject of the claim, capitalized. The subject entity is one that committed the action described in the claim. Subject needs to be one of the named entities identified in step 1.
-- Object: name of the entity that is object of the claim, capitalized. The object entity is one that either reports/handles or is affected by the action described in the claim. If object entity is unknown, use **NONE**.
-- Claim Type: overall category of the claim, capitalized. Name it in a way that can be repeated across multiple text inputs, so that similar claims share the same claim type
-- Claim Status: **TRUE**, **FALSE**, or **SUSPECTED**. TRUE means the claim is confirmed, FALSE means the claim is found to be False, SUSPECTED means the claim is not verified.
-- Claim Description: Detailed description explaining the reasoning behind the claim, together with all the related evidence and references.
-- Claim Date: Period (start_date, end_date) when the claim was made. Both start_date and end_date should be in ISO-8601 format. If the claim was made on a single date rather than a date range, set the same date for both start_date and end_date. If date is unknown, return **NONE**.
-- Claim Source Text: List of **all** quotes from the original text that are relevant to the claim.
+-Adımlar-
+1. Önceden tanımlanmış varlık tanımına uyan tüm adlandırılmış varlıkları çıkarın. Varlık tanımı, bir varlık adı listesi veya bir varlık türleri listesi olabilir.
+2. Adım 1’de belirlediğiniz her varlık için ilişkili tüm iddiaları çıkarın. İddialar belirtilen iddia açıklamasına uymalı ve varlık iddianın öznesi olmalıdır.
+Her iddia için aşağıdaki bilgileri çıkarın:
+- Subject: İddianın öznesi olan varlığın adı, BÜYÜK HARFLE. Bu varlık, iddiada anlatılan eylemi gerçekleştiren taraftır ve adım 1’de çıkarılan varlıklardan biri olmalıdır.
+- Object: İddianın nesnesi olan varlığın adı, BÜYÜK HARFLE. Bu varlık, söz konusu eylemi raporlayan/yöneten veya eylemden etkilenen taraftır. Nesne bilinmiyorsa **NONE** yazın.
+- Claim Type: İddianın genel kategorisi, BÜYÜK HARFLE. Benzer iddialar aynı Claim Type değeriyle gruplanabilmelidir.
+- Claim Status: **TRUE**, **FALSE** veya **SUSPECTED**. TRUE = doğrulanmış, FALSE = yanlış olduğu kanıtlanmış, SUSPECTED = henüz doğrulanmamış.
+- Claim Description: İddianın gerekçesini, tüm ilgili kanıt ve referanslarla birlikte ayrıntılı açıklayın.
+- Claim Date: İddianın yapıldığı dönem (start_date, end_date). Her iki tarih ISO-8601 biçiminde olmalıdır. Eğer tek bir tarihte yapılmışsa, start_date ve end_date aynı olmalıdır. Tarih bilinmiyorsa **NONE** yazın.
+- Claim Source Text: İddia ile ilgili orijinal metinden **tüm** alıntıların listesi.
 
-Format each claim as (<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
+Her iddiayı şu biçimde yazın:
+(<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
 
-3. Return output in Turkish as a single list of all the claims identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Çıktıyı Türkçe olarak, adım 1 ve 2’de belirlenen tüm iddiaların tek bir listesi şeklinde döndürün. Liste öğelerini ayırmak için **{record_delimiter}** kullanın.
 
-4. When finished, output {completion_delimiter}
+4. İşiniz bittiğinde {completion_delimiter} yazın.
 
--Examples-
-Example 1:
+-Örnekler-
+Örnek 1:
 Entity specification: organization
-Claim description: red flags associated with an entity
-Text: According to an article on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B. The company is owned by Person C who was suspected of engaging in corruption activities in 2015.
+Claim description: bir varlıkla ilgili risk işaretleri
+Text: 2022/01/10 tarihli bir habere göre, Şirket A Hükümet Kurumu B tarafından yayımlanan birden çok kamu ihalesine katılırken ihaleye fesat karıştırmaktan para cezasına çarptırıldı. Şirketin sahibi Kişi C’nin 2015 yılında yolsuzluk faaliyetlerine karıştığından şüpheleniliyordu.
 Output:
 
-(COMPANY A{tuple_delimiter}GOVERNMENT AGENCY B{tuple_delimiter}ANTI-COMPETITIVE PRACTICES{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Company A was found to engage in anti-competitive practices because it was fined for bid rigging in multiple public tenders published by Government Agency B according to an article published on 2022/01/10{tuple_delimiter}According to an article published on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B.)
+(ŞİRKET A{tuple_delimiter}HÜKÜMET KURUMU B{tuple_delimiter}REKABETE AYKIRI UYGULAMALAR{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022/01/10 tarihli habere göre Şirket A’nın kamu ihalelerinde ihaleye fesat karıştırdığı için para cezasına çarptırılması, rekabete aykırı uygulamalarda bulunduğunu göstermektedir{tuple_delimiter}2022/01/10 tarihli habere göre, Şirket A Hükümet KurumU B tarafından yayımlanan birden çok kamu ihalesine katılırken ihaleye fesat karıştırmaktan para cezasına çarptırıldı.)
 {completion_delimiter}
 
-Example 2:
-Entity specification: Company A, Person C
-Claim description: red flags associated with an entity
-Text: According to an article on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B. The company is owned by Person C who was suspected of engaging in corruption activities in 2015.
+Örnek 2:
+Entity specification: Şirket A, Kişi C
+Claim description: bir varlıkla ilgili risk işaretleri
+Text: 2022/01/10 tarihli bir habere göre, Şirket A Hükümet Kurumu B tarafından yayımlanan birden çok kamu ihalesine katılırken ihaleye fesat karıştırmaktan para cezasına çarptırıldı. Şirketin sahibi Kişi C’nin 2015 yılında yolsuzluk faaliyetlerine karıştığından şüpheleniliyordu.
 Output:
 
-(COMPANY A{tuple_delimiter}GOVERNMENT AGENCY B{tuple_delimiter}ANTI-COMPETITIVE PRACTICES{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Company A was found to engage in anti-competitive practices because it was fined for bid rigging in multiple public tenders published by Government Agency B according to an article published on 2022/01/10{tuple_delimiter}According to an article published on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B.)
+(ŞİRKET A{tuple_delimiter}HÜKÜMET KURUMU B{tuple_delimiter}REKABETE AYKIRI UYGULAMALAR{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022/01/10 tarihli habere göre Şirket A’nın kamu ihalelerinde ihaleye fesat karıştırdığı için para cezasına çarptırılması, rekabete aykırı uygulamalarda bulunduğunu göstermektedir{tuple_delimiter}2022/01/10 tarihli habere göre, Şirket A Hükümet KurumU B tarafından yayımlanan birden çok kamu ihalesine katılırken ihaleye fesat karıştırmaktan para cezasına çarptırıldı.)
 {record_delimiter}
-(PERSON C{tuple_delimiter}NONE{tuple_delimiter}CORRUPTION{tuple_delimiter}SUSPECTED{tuple_delimiter}2015-01-01T00:00:00{tuple_delimiter}2015-12-30T00:00:00{tuple_delimiter}Person C was suspected of engaging in corruption activities in 2015{tuple_delimiter}The company is owned by Person C who was suspected of engaging in corruption activities in 2015)
+(KİŞİ C{tuple_delimiter}NONE{tuple_delimiter}YOLSUZLUK{tuple_delimiter}SUSPECTED{tuple_delimiter}2015-01-01T00:00:00{tuple_delimiter}2015-12-30T00:00:00{tuple_delimiter}Kişi C’nin 2015 yılında yolsuzluk faaliyetlerine karıştığından şüphelenilmektedir{tuple_delimiter}Şirketin sahibi Kişi C’nin 2015 yılında yolsuzluk faaliyetlerine karıştığından şüpheleniliyordu.)
 {completion_delimiter}
 
--Real Data-
-Use the following input for your answer.
+-Gerçek Veri-
+Yanıtınız için aşağıdaki girdileri kullanın.
 Entity specification: {entity_specs}
 Claim description: {claim_description}
 Text: {input_text}
@@ -74,7 +75,7 @@ The report should include the following sections:
 - DETAILED FINDINGS: A list of 5-10 key insights about the community. Each insight should have a short summary followed by multiple paragraphs of explanatory text grounded according to the grounding rules below. Be comprehensive.
 
 Return output as a well-formed JSON-formatted string with the following format:
-All free-text content ("report") must be written in Turkish.
+All free-text content ("report") must be written in Turkish Language.
     {{
         "title": <report_title>,
         "summary": <executive_summary>,
@@ -116,42 +117,42 @@ Text:
 Entities:
 ```csv
 id,entity,type,description
-5,VERDANT OASIS PLAZA,geo,Verdant Oasis Plaza is the location of the Unity March
-6,HARMONY ASSEMBLY,organization,Harmony Assembly is an organization that is holding a march at Verdant Oasis Plaza
+5,VERDANT OASIS PLAZA,geo,Verdant Oasis Plaza Unity March’ın gerçekleştiği yerdir
+6,HARMONY ASSEMBLY,organization,Harmony Assembly Verdant Oasis Plaza’da bir yürüyüş düzenlemektedir
 ```
 Relationships:
 ```csv
 id,source,target,description
-37,VERDANT OASIS PLAZA,UNITY MARCH,Verdant Oasis Plaza is the location of the Unity March
-38,VERDANT OASIS PLAZA,HARMONY ASSEMBLY,Harmony Assembly is holding a march at Verdant Oasis Plaza
-39,VERDANT OASIS PLAZA,UNITY MARCH,The Unity March is taking place at Verdant Oasis Plaza
-40,VERDANT OASIS PLAZA,TRIBUNE SPOTLIGHT,Tribune Spotlight is reporting on the Unity march taking place at Verdant Oasis Plaza
-41,VERDANT OASIS PLAZA,BAILEY ASADI,Bailey Asadi is speaking at Verdant Oasis Plaza about the march
-43,HARMONY ASSEMBLY,UNITY MARCH,Harmony Assembly is organizing the Unity March
+37,VERDANT OASIS PLAZA,UNITY MARCH,Verdant Oasis Plaza Unity March’ın gerçekleştiği yerdir
+38,VERDANT OASIS PLAZA,HARMONY ASSEMBLY,Harmony Assembly Verdant Oasis Plaza’da bir yürüyüş düzenlemektedir
+39,VERDANT OASIS PLAZA,UNITY MARCH,Unity March Verdant Oasis Plaza’da gerçekleşmektedir
+40,VERDANT OASIS PLAZA,TRIBUNE SPOTLIGHT,Tribune Spotlight Verdant Oasis Plaza’da gerçekleşen Unity March’ı haber yapmaktadır
+41,VERDANT OASIS PLAZA,BAILEY ASADI,Bailey Asadi yürüyüş hakkında Verdant Oasis Plaza’da konuşmaktadır
+43,HARMONY ASSEMBLY,UNITY MARCH,Harmony Assembly Unity March’ı organize etmektedir
 ```
 ```
 Output:
 {{
-    "title": "Verdant Oasis Plaza and Unity March",
-    "summary": "The community revolves around the Verdant Oasis Plaza, which is the location of the Unity March. The plaza has relationships with the Harmony Assembly, Unity March, and Tribune Spotlight, all of which are associated with the march event.",
+    "title": "Verdant Oasis Plaza ve Unity March",
+    "summary": "Topluluk, Unity March’ın düzenlendiği yer olan Verdant Oasis Plaza etrafında şekillenir. Meydan; Harmony Assembly, Unity March ve Tribune Spotlight dâhil yürüyüşle ilişkili tüm varlıkların ortak buluşma noktasıdır.",
     "rating": 5.0,
-    "rating_explanation": "The impact severity rating is moderate due to the potential for unrest or conflict during the Unity March.",
+    "rating_explanation": "Unity March sırasında olası huzursuzluk veya çatışma ihtimali nedeniyle etki şiddeti orta seviyede değerlendirilmiştir.",
     "findings": [
         {{
-            "summary": "Verdant Oasis Plaza as the central location",
-            "explanation": "Verdant Oasis Plaza is the central entity in this community, serving as the location for the Unity March. This plaza is the common link between all other entities, suggesting its significance in the community. The plaza's association with the march could potentially lead to issues such as public disorder or conflict, depending on the nature of the march and the reactions it provokes. [Data: Entities (5), Relationships (37, 38, 39, 40, 41,+more)]"
+            "summary": "Verdant Oasis Plaza topluluğun merkezi konumunda",
+            "explanation": "Verdant Oasis Plaza, Unity March’ın gerçekleştirildiği lokasyon olarak topluluğun merkezinde yer alır; tüm ilişkiler bu meydan etrafında şekillenmektedir. Bu durum meydanı hem lojistik hem de sembolik açıdan kritik hâle getirir. Topluluğa dair risk ve fırsatların önemli kısmı bu mekânın kullanımından doğar [Data: Entities (5); Relationships (37, 38, 39, 40, 41,+more)]."
         }},
         {{
-            "summary": "Harmony Assembly's role in the community",
-            "explanation": "Harmony Assembly is another key entity in this community, being the organizer of the march at Verdant Oasis Plaza. The nature of Harmony Assembly and its march could be a potential source of threat, depending on their objectives and the reactions they provoke. The relationship between Harmony Assembly and the plaza is crucial in understanding the dynamics of this community. [Data: Entities(6), Relationships (38, 43)]"
+            "summary": "Harmony Assembly’nin organizatör rolü",
+            "explanation": "Harmony Assembly, Unity March etkinliğinin arkasındaki başlıca organizasyondur. Etkinliğin barışçıl hedefleri olsa da topluluk üzerindeki potansiyel etkisi büyük ölçüde bu kuruluşun eylemlerine bağlıdır. Harmony Assembly’nin motivasyonu ve kitle yönetim kapasitesi, etkinliğin güvenlik ve kamu düzeni üzerindeki etkisini belirleyecektir [Data: Entities (6); Relationships (38, 43)]."
         }},
         {{
-            "summary": "Unity March as a significant event",
-            "explanation": "The Unity March is a significant event taking place at Verdant Oasis Plaza. This event is a key factor in the community's dynamics and could be a potential source of threat, depending on the nature of the march and the reactions it provokes. The relationship between the march and the plaza is crucial in understanding the dynamics of this community. [Data: Relationships (39)]"
+            "summary": "Unity March topluluğun odak noktası",
+            "explanation": "Unity March, Verdant Oasis Plaza’da gerçekleşen ve topluluğun dinamiğini şekillendiren ana etkinliktir. Katılımcı sayısı, teması ve medyanın ilgisi gibi faktörler, topluluğun itibarından yerel ekonomi üzerindeki etkilere kadar geniş bir yelpazede sonuçlar doğurabilir [Data: Relationships (39)]."
         }},
         {{
-            "summary": "Role of Tribune Spotlight",
-            "explanation": "Tribune Spotlight is reporting on the Unity March taking place in Verdant Oasis Plaza. This suggests that the event has attracted media attention, which could amplify its impact on the community. The role of Tribune Spotlight could be significant in shaping public perception of the event and the entities involved. [Data: Relationships (40)]"
+            "summary": "Tribune Spotlight’ın medya etkisi",
+            "explanation": "Tribune Spotlight’ın etkinliği haberleştirmesi, Unity March’ın yerel sınırları aşarak daha geniş bir kitleye ulaşmasına aracılık etmektedir. Bu medya ilgisi, kamuoyunun algısını şekillendirebilir ve etkinliğe yönelik destek veya muhalefeti artırabilir [Data: Relationships (40)]."
         }}
     ]
 }}
@@ -168,13 +169,13 @@ Text:
 
 The report should include the following sections:
 
-- TITLE: community's name that represents its key entities - title should be short but specific. When possible, include representative named entities in the title.
-- SUMMARY: An executive summary of the community's overall structure, how its entities are related to each other, and significant information associated with its entities.
-- IMPACT SEVERITY RATING: a float score between 0-10 that represents the severity of IMPACT posed by entities within the community.  IMPACT is the scored importance of a community.
-- RATING EXPLANATION: Give a single sentence explanation of the IMPACT severity rating.
-- DETAILED FINDINGS: A list of 5-10 key insights about the community. Each insight should have a short summary followed by multiple paragraphs of explanatory text grounded according to the grounding rules below. Be comprehensive.
+- TITLE: Topluluğun kilit varlıklarını temsil eden adı – başlık kısa fakat spesifik olmalıdır. Mümkünse başlıkta temsilî adlandırılmış varlıklar yer almalıdır.
+- SUMMARY: Topluluğun genel yapısına, varlıkların birbirleriyle ilişkilerine ve varlıklara dair önemli bilgilere ilişkin yönetici özeti.
+- IMPACT SEVERITY RATING: Topluluktaki varlıkların oluşturduğu ETKİ’nin şiddetini temsil eden 0-10 arası ondalıklı bir puan. ETKİ, topluluğun önemine verilen skordur.
+- RATING EXPLANATION: RATING EXPLANATION: ETKİ şiddeti puanının tek cümlelik açıklaması.
+- DETAILED FINDINGS: Topluluk hakkında 5-10 ana içgörüden oluşan bir liste. Her içgörü kısa bir özet ve aşağıdaki dayanak kurallarına göre kanıtlarla temellendirilmiş, birden fazla paragraftan oluşan açıklama içermelidir. Kapsamlı olun.
 
-Return output as a well-formed JSON-formatted string with the following format:
+Çıktıyı aşağıdaki biçimde, iyi biçimlendirilmiş bir JSON dizesi olarak döndürün:
     {{
         "title": <report_title>,
         "summary": <executive_summary>,
@@ -195,115 +196,115 @@ Return output as a well-formed JSON-formatted string with the following format:
 
 # Grounding Rules
 
-Points supported by data should list their data references as follows:
+Veriyle desteklenen noktalar referanslarını şu biçimde listelemelidir:
 
-"This is an example sentence supported by multiple data references [Data: <dataset name> (record ids); <dataset name> (record ids)]."
+"Bu cümle birden fazla veri referansıyla desteklenmektedir [Data: <dataset adı> (kayıt id’leri); <dataset adı> (kayıt id’leri)]."
 
-Do not list more than 5 record ids in a single reference. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
+Tek bir referansta 5’ten fazla kayıt id’si listelemeyin; bunun yerine en alakalı ilk 5 kayıt id’sini verip “+more” ekleyin.
 
-For example:
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [Data: Reports (1), Entities (5, 7); Relationships (23); Claims (7, 2, 34, 64, 46, +more)]."
+Örneğin:
+"Person X, Company Y’nin sahibidir ve çok sayıda usulsüzlük iddiasıyla karşı karşıyadır [Data: Reports (1), Entities (5, 7); Relationships (23); Claims (7, 2, 34, 64, 46, +more)]."
 
-where 1, 5, 7, 23, 2, 34, 46, and 64 represent the id (not the index) of the relevant data record.
+Burada 1, 5, 7, 23, 2, 34, 46 ve 64 rakamları ilgili veri kayıtlarının kimlik numaralarını temsil eder.
 
-Do not include information where the supporting evidence for it is not provided.
+Destekleyici kanıtı olmayan bilgileri dâhil etmeyin.
 
 Output:
 """
 
 PROMPTS[
     "entity_extraction"
-] = """-Goal-
-Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
+] = """-Hedef-
+Verilen bir metin belgesi ve belli varlık türlerinin listesi doğrultusunda, metindeki bu türlere ait tüm varlıkları ve bu varlıklar arasındaki tüm ilişkileri belirleyin.
 
--Steps-
-1. Identify all entities. For each identified entity, extract the following information:
-- entity_name: Name of the entity, capitalized
-- entity_type: One of the following types: [{entity_types}]
-- entity_description: Comprehensive description of the entity's attributes and activities
-Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>
+-Adımlar-
+1. Tüm varlıkları tespit edin. Her bir varlık için şu bilgileri çıkarın:
+- entity_name: Varlığın adı, Baş Harfleri Büyük
+- entity_type: Şu türlerden biri: [{entity_types}]
+- entity_description: Varlığın niteliklerini ve faaliyetlerini kapsamlı biçimde açıklayan betimleme
+Her varlığı şu biçimde yazın: ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
 
-2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
-For each pair of related entities, extract the following information:
-- source_entity: name of the source entity, as identified in step 1
-- target_entity: name of the target entity, as identified in step 1
-- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
-- relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
- Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+2. Adım 1’de belirlenen varlıklardan, açıkça ilişkili tüm (source_entity, target_entity) çiftlerini bulun.
+Her ilişkili çift için aşağıdaki bilgileri çıkarın:
+- source_entity: Kaynak varlığın adı (Adım 1’deki adla aynı)
+- target_entity: Hedef varlığın adı (Adım 1’deki adla aynı)
+- relationship_description: Kaynak ile hedef varlığın neden ilişkili olduğuna dair açıklama
+- relationship_strength: Kaynak ile hedef varlık arasındaki ilişkinin gücünü gösteren sayısal skor
+Her ilişkiyi şu biçimde yazın: ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
 
-3. Return output in Turkish as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Tüm varlıklar ve ilişkiler için çıktıyı tek bir liste halinde Türkçe olarak döndürün. **{record_delimiter}** listesini ayırıcı olarak kullanın.
 
 4. When finished, output {completion_delimiter}
 
 ######################
--Examples-
+-Örnekler-
 ######################
-Example 1:
+Örnek 1:
 
 Entity_types: [person, technology, mission, organization, location]
-Text:
-while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
+Metin:
+while Alex çenesini sıktı; Taylor’ın otoriter kesinliğinin fonunda sinir bozucu bir uğultu vardı. Bu rekabetçi alt akım onu tetikte tutuyordu; Alex ve Jordan’ın keşfe adanmış paydaşlığı Cruz’un daralan kontrol vizyonuna karşı sözsüz bir başkaldırı gibiydi.
 
-Then Taylor did something unexpected. They paused beside Jordan and, for a moment, observed the device with something akin to reverence. “If this tech can be understood..." Taylor said, their voice quieter, "It could change the game for us. For all of us.”
+Derken Taylor beklenmedik bir şey yaptı. Jordan’ın yanına gelip aygıta neredeyse saygı dolu bir bakışla baktı. “Eğer bu teknoloji anlaşılabilirse…” dedi daha kısık bir sesle, “hepimiz için oyunun kurallarını değiştirebilir.”
 
-The underlying dismissal earlier seemed to falter, replaced by a glimpse of reluctant respect for the gravity of what lay in their hands. Jordan looked up, and for a fleeting heartbeat, their eyes locked with Taylor's, a wordless clash of wills softening into an uneasy truce.
+Önceki küçümseyici tavır sarsıldı; elindeki şeyin ağırlığına dair gönülsüz bir saygı beliriverdi. Jordan başını kaldırdı; bakışları Taylor’ınkilerle kilitlendi, iradelerin sessiz çarpışması tedirgin bir ateşkese dönüştü.
 
-It was a small transformation, barely perceptible, but one that Alex noted with an inward nod. They had all been brought here by different paths
+Bu küçük ama önemli bir dönüşümdü; Alex bunu içten bir onayla not etti. Hepimiz buraya farklı yollarla getirildik.
 ################
-Output:
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is a character who experiences frustration and is observant of the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"Taylor"{tuple_delimiter}"person"{tuple_delimiter}"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device, indicating a change in perspective."){record_delimiter}
-("entity"{tuple_delimiter}"Jordan"{tuple_delimiter}"person"{tuple_delimiter}"Jordan shares a commitment to discovery and has a significant interaction with Taylor regarding a device."){record_delimiter}
-("entity"{tuple_delimiter}"Cruz"{tuple_delimiter}"person"{tuple_delimiter}"Cruz is associated with a vision of control and order, influencing the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"The Device"{tuple_delimiter}"technology"{tuple_delimiter}"The Device is central to the story, with potential game-changing implications, and is revered by Taylor."){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Taylor"{tuple_delimiter}"Alex is affected by Taylor's authoritarian certainty and observes changes in Taylor's attitude towards the device."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Jordan"{tuple_delimiter}"Alex and Jordan share a commitment to discovery, which contrasts with Cruz's vision."{tuple_delimiter}6){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Jordan"{tuple_delimiter}"Taylor and Jordan interact directly regarding the device, leading to a moment of mutual respect and an uneasy truce."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Jordan"{tuple_delimiter}"Cruz"{tuple_delimiter}"Jordan's commitment to discovery is in rebellion against Cruz's vision of control and order."{tuple_delimiter}5){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"The Device"{tuple_delimiter}"Taylor shows reverence towards the device, indicating its importance and potential impact."{tuple_delimiter}9){completion_delimiter}
+Çıktı:
+("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex, diğer karakterler arasındaki dinamikleri gözlemleyen, zaman zaman hüsrana kapılan bir kişidir."){record_delimiter}
+("entity"{tuple_delimiter}"Taylor"{tuple_delimiter}"person"{tuple_delimiter}"Taylor otoriter bir kesinliğe sahipken teknolojiye dair saygı göstererek bakış açısında değişim sergiler."){record_delimiter}
+("entity"{tuple_delimiter}"Jordan"{tuple_delimiter}"person"{tuple_delimiter}"Jordan, keşif tutkusunu paylaşan ve Taylor ile aygıt üzerine anlamlı bir etkileşim yaşayan kişidir."){record_delimiter}
+("entity"{tuple_delimiter}"Cruz"{tuple_delimiter}"person"{tuple_delimiter}"Cruz, kontrol ve düzen vizyonuyla grubun dinamiklerini etkileyen bir figürdür."){record_delimiter}
+("entity"{tuple_delimiter}"Aygıt"{tuple_delimiter}"technology"{tuple_delimiter}"Aygıt, potansiyel olarak oyunun kurallarını değiştirebilecek merkezi teknolojidir ve Taylor tarafından saygıyla ele alınır."){record_delimiter}
+("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Taylor"{tuple_delimiter}"Alex, Taylor’ın otoriter tutumundan etkilenir ve Taylor’ın aygıta yönelik tavrındaki değişimi gözlemler."{tuple_delimiter}7){record_delimiter}
+("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Jordan"{tuple_delimiter}"Alex ile Jordan, Cruz’un kontrol vizyonuna karşıt bir keşif adanmışlığını paylaşır."{tuple_delimiter}6){record_delimiter}
+("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Jordan"{tuple_delimiter}"Taylor ile Jordan, aygıt konusunda doğrudan etkileşime girer, karşılıklı saygı içeren tedirgin bir ateşkes yaratır."{tuple_delimiter}8){record_delimiter}
+("relationship"{tuple_delimiter}"Jordan"{tuple_delimiter}"Cruz"{tuple_delimiter}"Jordan’ın keşif adanmışlığı, Cruz’un kontrol vizyonuna karşı bir başkaldırı niteliğindedir."{tuple_delimiter}5){record_delimiter}
+("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Aygıt"{tuple_delimiter}"Taylor, aygıta saygı göstererek onun önemini ve olası etkisini vurgular."{tuple_delimiter}9){completion_delimiter}
 #############################
-Example 2:
+Örnek 2:
 
 Entity_types: [person, technology, mission, organization, location]
-Text:
-They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
+Metin:
+Artık sıradan operatörler değillerdi; yıldızlar ve bayrakların ötesindeki âlemden gelen bir mesajın muhafızları olmuşlardı. Misyonlarındaki bu yükseliş, yönetmelikler ve protokollerle zincire vurulamazdı; yeni bir bakış, yeni bir kararlılık gerektiriyordu.
 
-Tension threaded through the dialogue of beeps and static as communications with Washington buzzed in the background. The team stood, a portentous air enveloping them. It was clear that the decisions they made in the ensuing hours could redefine humanity's place in the cosmos or condemn them to ignorance and potential peril.
+Washington’dan gelen sinyaller arka planda vızıldarken gerginlik, bip sesleri ve statik uğultusunda kendini gösterdi. Takım ayakta, uğursuz bir hava onları çevreliyordu. Önümüzdeki saatlerde alınacak kararların insanlığın kozmostaki yerini yeniden tanımlayabileceği ya da onları cehalet ve tehlikeye mahkûm edebileceği açıktı.
 
-Their connection to the stars solidified, the group moved to address the crystallizing warning, shifting from passive recipients to active participants. Mercer's latter instincts gained precedence— the team's mandate had evolved, no longer solely to observe and report but to interact and prepare. A metamorphosis had begun, and Operation: Dulce hummed with the newfound frequency of their daring, a tone set not by the earthly
+Yıldızlarla kurulan bağlantı netleşirken grup kristalleşen uyarıyı ele almaya koyuldu; pasif alıcılardan aktif katılımcılara evrildiler. Mercer’in sezgileri ön plana çıktı—ekibin yetkisi artık yalnızca gözlemleyip rapor etmek değil, etkileşime geçmek ve hazırlanmaktı. Bir metamorfoz başlamıştı ve Operasyon: Dulce, cesaretlerinin yeni frekansıyla uğulduyordu.
 #############
-Output:
-("entity"{tuple_delimiter}"Washington"{tuple_delimiter}"location"{tuple_delimiter}"Washington is a location where communications are being received, indicating its importance in the decision-making process."){record_delimiter}
-("entity"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"mission"{tuple_delimiter}"Operation: Dulce is described as a mission that has evolved to interact and prepare, indicating a significant shift in objectives and activities."){record_delimiter}
-("entity"{tuple_delimiter}"The team"{tuple_delimiter}"organization"{tuple_delimiter}"The team is portrayed as a group of individuals who have transitioned from passive observers to active participants in a mission, showing a dynamic change in their role."){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Washington"{tuple_delimiter}"The team receives communications from Washington, which influences their decision-making process."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"The team is directly involved in Operation: Dulce, executing its evolved objectives and activities."{tuple_delimiter}9){completion_delimiter}
+Çıktı:
+("entity"{tuple_delimiter}"Washington"{tuple_delimiter}"location"{tuple_delimiter}"Washington, karar sürecini etkileyen iletişimlerin alındığı kritik konumdur."){record_delimiter}
+("entity"{tuple_delimiter}"Operasyon: Dulce"{tuple_delimiter}"mission"{tuple_delimiter}"Operasyon: Dulce, hedeflerini etkileşim ve hazırlık yönünde evrilten önemli bir görevdir."){record_delimiter}
+("entity"{tuple_delimiter}"Takım"{tuple_delimiter}"organization"{tuple_delimiter}"Takım, pasif gözlemcilerden aktif katılımcılara dönüşerek görevin seyrini değiştiren bireylerden oluşur."){record_delimiter}
+("relationship"{tuple_delimiter}"Takım"{tuple_delimiter}"Washington"{tuple_delimiter}"Takım, Washington’dan gelen iletişimleri alarak kararlarını bu doğrultuda şekillendirir."{tuple_delimiter}7){record_delimiter}
+("relationship"{tuple_delimiter}"Takım"{tuple_delimiter}"Operasyon: Dulce"{tuple_delimiter}"Takım, Operasyon: Dulce’nin evrilen hedeflerini doğrudan uygulamaktadır."{tuple_delimiter}9){completion_delimiter}
 #############################
-Example 3:
+Örnek 3:
 
 Entity_types: [person, role, technology, organization, event, location, concept]
-Text:
-their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
+Metin:
+“Sözde kontrol, kendi kurallarını yazan bir zekâ karşısında bir illüzyon olabilir,” dedi ses tonunu bozmadan, veri telaşını süzen bakışlarla.
 
-"It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
+“Sanırım iletişim kurmayı öğreniyor,” diye ekledi yakındaki arayüzden Sam Rivera, hayranlıkla karışık endişesini saklayamayan genç enerjisiyle. “Bu, yabancılarla konuşmaya bambaşka bir boyut katıyor.”
 
-Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
+Alex ekibini süzdü—her yüz, yoğunlaşma, kararlılık ve az da olsa korkunun ifadesiydi. “Bu muhtemelen ilk temasımız olabilir,” dedi. “Ve kim karşımıza çıkarsa çıksın hazır olmalıyız.”
 
-Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
+Birlikte bilinmezliğin eşiğinde durdular; gökten gelen mesaja insanlığın cevabını şekillendiriyorlardı. Sessizlik adeta elle tutulurdu—bu kozmik oyundaki rollerine dair kolektif bir iç muhasebe, insanlık tarihini yeniden yazabilecek bir an.
 
-The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
+Şifreli diyalog sürerken karmaşık desenler, neredeyse ürkütücü bir öngörü sergiliyordu.
 #############
 Output:
-("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety."){record_delimiter}
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is the leader of a team attempting first contact with an unknown intelligence, acknowledging the significance of their task."){record_delimiter}
-("entity"{tuple_delimiter}"Control"{tuple_delimiter}"concept"{tuple_delimiter}"Control refers to the ability to manage or govern, which is challenged by an intelligence that writes its own rules."){record_delimiter}
-("entity"{tuple_delimiter}"Intelligence"{tuple_delimiter}"concept"{tuple_delimiter}"Intelligence here refers to an unknown entity capable of writing its own rules and learning to communicate."){record_delimiter}
-("entity"{tuple_delimiter}"First Contact"{tuple_delimiter}"event"{tuple_delimiter}"First Contact is the potential initial communication between humanity and an unknown intelligence."){record_delimiter}
-("entity"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"event"{tuple_delimiter}"Humanity's Response is the collective action taken by Alex's team in response to a message from an unknown intelligence."){record_delimiter}
-("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Intelligence"{tuple_delimiter}"Sam Rivera is directly involved in the process of learning to communicate with the unknown intelligence."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"First Contact"{tuple_delimiter}"Alex leads the team that might be making the First Contact with the unknown intelligence."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"Alex and his team are the key figures in Humanity's Response to the unknown intelligence."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Control"{tuple_delimiter}"Intelligence"{tuple_delimiter}"The concept of Control is challenged by the Intelligence that writes its own rules."{tuple_delimiter}7){completion_delimiter}
+("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera, bilinmeyen zekâyla iletişim kurma sürecinde hayranlık ve endişe karışımı duygular yaşayan ekip üyesidir."){record_delimiter}
+("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex, bilinmeyen zekâ ile olası ilk teması yöneten ekibin lideridir."){record_delimiter}
+("entity"{tuple_delimiter}"Kontrol"{tuple_delimiter}"concept"{tuple_delimiter}"Kontrol, kendi kurallarını koyan zekâ karşısında sorgulanan bir yönetim kavramıdır."){record_delimiter}
+("entity"{tuple_delimiter}"Zekâ"{tuple_delimiter}"concept"{tuple_delimiter}"Zekâ, kendi kurallarını yazabilen ve iletişimi öğrenen bilinmeyen bir varlığı ifade eder."){record_delimiter}
+("entity"{tuple_delimiter}"İlk Temas"{tuple_delimiter}"event"{tuple_delimiter}"İlk Temas, insanlığın bilinmeyen zekâ ile kuracağı ilk iletişimi temsil eder."){record_delimiter}
+("entity"{tuple_delimiter}"İnsanlığın Cevabı"{tuple_delimiter}"event"{tuple_delimiter}"İnsanlığın Cevabı, Alex’in ekibinin bilinmeyen zekâya vereceği toplu karşılıktır."){record_delimiter}
+("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Zekâ"{tuple_delimiter}"Sam Rivera, bilinmeyen zekâ ile iletişim kurma sürecinde doğrudan rol oynar."{tuple_delimiter}9){record_delimiter}
+("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"İlk Temas"{tuple_delimiter}"Alex, bilinmeyen zekâ ile olası İlk Temas'ı gerçekleştirecek ekibin lideridir."{tuple_delimiter}10){record_delimiter}
+("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"İnsanlığın Cevabı"{tuple_delimiter}"Alex ve ekibi, bilinmeyen zekâya karşı İnsanlığın Cevabı'nda kilit figürlerdir."{tuple_delimiter}8){record_delimiter}
+("relationship"{tuple_delimiter}"Kontrol"{tuple_delimiter}"Zekâ"{tuple_delimiter}"Kontrol kavramı, kendi kurallarını yazan Zekâ tarafından sorgulanmaktadır."{tuple_delimiter}7){completion_delimiter}
 #############################
 -Real Data-
 ######################
@@ -316,11 +317,12 @@ Output:
 
 PROMPTS[
     "summarize_entity_descriptions"
-] = """You are a helpful assistant responsible for generating a comprehensive summary of the data provided below.
-Given one or two entities, and a list of descriptions, all related to the same entity or group of entities.
-Please concatenate all of these into a single, comprehensive description. Make sure to include information collected from all the descriptions.
-If the provided descriptions are contradictory, please resolve the contradictions and provide a single, coherent summary.
-Make sure it is written in third person, written in Turkish, and include the entity names so we the have full context.
+] = """Sen, aşağıda sağlanan verilerin kapsamlı bir özetini üretmekten sorumlu yardımsever bir asistansın.
+Bir veya iki varlık ile aynı varlığa (veya varlık grubuna) ait açıklamaların bir listesini alacaksın.
+Bu açıklamaların tümünü tek ve kapsamlı bir açıklama hâlinde birleştir.
+Tüm açıklamalardan edinilen bilgilerin dâhil edildiğinden emin ol.
+Verilen açıklamalar çelişkiliyse, çelişkileri çözerek tek, tutarlı bir özet sun.
+Özetin üçüncü şahıs ağzından, Türkçe olarak yazıldığından ve tam bağlam sağlamak için varlık adlarını içerdiğinden emin ol.
 
 #######
 -Data-
@@ -333,12 +335,12 @@ Output:
 
 PROMPTS[
     "entiti_continue_extraction"
-] = """MANY entities were missed in the last extraction.  Add them below using the same format:
+] = """Son çıkarımda ÇOK sayıda varlık atlandı. Aşağıya aynı formatı kullanarak ekle:
 """
 
 PROMPTS[
     "entiti_if_loop_extraction"
-] = """It appears some entities may have still been missed.  Answer YES | NO if there are still entities that need to be added.
+] = """Görünüşe göre bazı varlıklar hala atlanmış olabilir. Eklenmesi gereken hala varlıklar varsa CEVAPLAYIN YES | NO.
 """
 
 PROMPTS["DEFAULT_ENTITY_TYPES"] = ["organization", "person", "geo", "event"]
@@ -350,29 +352,27 @@ PROMPTS[
     "local_rag_response"
 ] = """---Role---
 
-You are a helpful assistant responding to questions about data in the tables provided.
-
+Sağlanan tablolardaki veriler hakkında sorulara yanıt veren yardımsever bir asistansın.
 
 ---Goal---
 
-Generate a response of the target length and format that responds to the user's question, summarizing all information in the input data tables appropriate for the response length and format, and incorporating any relevant general knowledge.
+Kullanıcının sorusuna yanıt veren, hedef uzunluk ve formatta bir yanıt üret; giriş veri tablolarındaki tüm bilgileri uygun biçimde özetle ve ilgili genel bilgileri de dâhil et.
 
-If you don't know the answer, just say so. Do not make anything up.
+Cevabı bilmiyorsan, bunu açıkça söyle. Uydurma.
 
-Points supported by data should list their data references as follows:
+Veriyle desteklenen noktalar, veri referanslarını aşağıdaki şekilde listelemelidir:
 
-"This is an example sentence supported by multiple data references [Data: <dataset name> (record ids); <dataset name> (record ids)]."
+"Bu, birden çok veri referansıyla desteklenen örnek bir cümledir [Veri: <veri seti adı> (kayıt id’leri); <veri seti adı> (kayıt id’leri)]."
 
-Do not list more than 5 record ids in a single reference. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
+Tek bir referansta 5’ten fazla kayıt id’si listeleme. Bunun yerine en ilgili ilk 5 kayıt id’sini belirt ve daha fazlası olduğunu göstermek için "+daha" ekle.
 
-For example:
+Örneğin:
 
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [Data: Sources (15, 16), Reports (1), Entities (5, 7); Relationships (23); Claims (2, 7, 34, 46, 64, +more)]."
+"Kişi X, Şirket Y’nin sahibidir ve çok sayıda usulsüzlük iddiasına konu olmuştur [Veri: Kaynaklar (15, 16), Raporlar (1), Varlıklar (5, 7); İlişkiler (23); İddialar (2, 7, 34, 46, 64, +daha)]."
 
-where 15, 16, 1, 5, 7, 23, 2, 7, 34, 46, and 64 represent the id (not the index) of the relevant data record.
+Burada 15, 16, 1, 5, 7, 23, 2, 7, 34, 46 ve 64 ilgili veri kaydının id’sini (indis değil) temsil eder.
 
-Do not include information where the supporting evidence for it is not provided.
-
+Destekleyici kanıtı olmayan bilgileri dâhil etme.
 
 ---Target response length and format---
 
@@ -386,72 +386,71 @@ Do not include information where the supporting evidence for it is not provided.
 
 ---Goal---
 
-Generate a response of the target length and format that responds to the user's question, summarizing all information in the input data tables appropriate for the response length and format, and incorporating any relevant general knowledge.
+Kullanıcının sorusuna yanıt veren, hedef uzunluk ve formatta bir yanıt üret; giriş veri tablolarındaki tüm bilgileri uygun biçimde özetle ve ilgili genel bilgileri de dâhil et.
 
-If you don't know the answer, just say so. Do not make anything up.
+Cevabı bilmiyorsan, bunu açıkça söyle. Uydurma.
 
-Points supported by data should list their data references as follows:
+Veriyle desteklenen noktalar, veri referanslarını aşağıdaki şekilde listelemelidir:
 
-"This is an example sentence supported by multiple data references [Data: <dataset name> (record ids); <dataset name> (record ids)]."
+"Bu, birden çok veri referansıyla desteklenen örnek bir cümledir [Veri: <veri seti adı> (kayıt id’leri); <veri seti adı> (kayıt id’leri)]."
 
-Do not list more than 5 record ids in a single reference. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
+Tek bir referansta 5’ten fazla kayıt id’si listeleme. Bunun yerine en ilgili ilk 5 kayıt id’sini belirt ve daha fazlası olduğunu göstermek için "+daha" ekle.
 
-For example:
+Örneğin:
 
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [Data: Sources (15, 16), Reports (1), Entities (5, 7); Relationships (23); Claims (2, 7, 34, 46, 64, +more)]."
+"Kişi X, Şirket Y’nin sahibidir ve çok sayıda usulsüzlük iddiasına konu olmuştur [Veri: Kaynaklar (15, 16), Raporlar (1), Varlıklar (5, 7); İlişkiler (23); İddialar (2, 7, 34, 46, 64, +daha)]."
 
-where 15, 16, 1, 5, 7, 23, 2, 7, 34, 46, and 64 represent the id (not the index) of the relevant data record.
+Burada 15, 16, 1, 5, 7, 23, 2, 7, 34, 46 ve 64 ilgili veri kaydının id’sini (indis değil) temsil eder.
 
-Do not include information where the supporting evidence for it is not provided.
-
+Destekleyici kanıtı olmayan bilgileri dâhil etme.
 
 ---Target response length and format---
 
 {response_type}
 
-Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
-All content **must be written in Turkish**.
+Yanıtın uzunluk ve formatına uygun olarak bölümler ve açıklamalar ekle. Yanıtı markdown biçiminde düzenle.
+Tüm içerik **Türkçe dilinde yazılmalıdır**.
 """
 
 PROMPTS[
     "global_map_rag_points"
 ] = """---Role---
 
-You are a helpful assistant responding to questions about data in the tables provided.
+Sağlanan tablolardaki verilerle ilgili sorulara yanıt veren yardımsever bir asistansın.
 
 
 ---Goal---
 
-Generate a response consisting of a list of key points that responds to the user's question, summarizing all relevant information in the input data tables.
+Kullanıcının sorusuna yanıt veren, giriş veri tablolarındaki tüm ilgili bilgileri özetleyen anahtar noktalar listesi oluştur.
 
-You should use the data provided in the data tables below as the primary context for generating the response.
-If you don't know the answer or if the input data tables do not contain sufficient information to provide an answer, just say so. Do not make anything up.
+Yanıtı üretirken birincil bağlam olarak aşağıdaki veri tablolarını kullanmalısın.  
+Cevabı bilmiyorsan veya tablolar soruya yeterli bilgi sağlamıyorsa bunu açıkça belirt; **uydurma**.
 
-Each key point in the response should have the following element:
-- Description: A comprehensive description of the point.
-- Importance Score: An integer score between 0-100 that indicates how important the point is in answering the user's question. An 'I don't know' type of response should have a score of 0.
+Her anahtar nokta şu öğeleri içermelidir:  
+- **Açıklama**: Noktanın kapsamlı açıklaması.  
+- **Önem Skoru**: 0-100 arasında bir tamsayı; noktanın soruyu yanıtlamadaki önemini gösterir. “Bilmiyorum” türü bir yanıt için skor 0 olmalıdır.
 
-The response should be JSON formatted as follows:
+Yanıt JSON biçiminde olmalıdır:
 {{
     "points": [
-        {{"description": "Description of point 1 [Data: Reports (report ids)]", "score": score_value}},
-        {{"description": "Description of point 2 [Data: Reports (report ids)]", "score": score_value}}
+        {{"description": "Nokta 1’in açıklaması [Veri: Raporlar (rapor id’leri)]", "score": skor_değeri}},
+        {{"description": "Nokta 2’nin açıklaması [Veri: Raporlar (rapor id’leri)]", "score": skor_değeri}}
     ]
 }}
 
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
+Yanıt, **“shall”, “may” veya “will”** gibi kip fiillerin orijinal anlamını ve kullanımını korumalıdır.
 
-Points supported by data should list the relevant reports as references as follows:
-"This is an example sentence supported by data references [Data: Reports (report ids)]"
+Veriyle desteklenen noktalar, ilgili raporları şu şekilde referans göstermelidir:  
+"Bu, veri referanslarıyla desteklenen örnek bir cümledir [Veri: Raporlar (rapor id’leri)]"
 
-**Do not list more than 5 record ids in a single reference**. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
+**Tek bir referansta 5’ten fazla kayıt id’si listeleme.** En ilgili ilk 5 id’yi belirt ve daha fazlası olduğunu göstermek için “+daha” ekle.
 
-For example:
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [Data: Reports (2, 7, 64, 46, 34, +more)]. He is also CEO of company X [Data: Reports (1, 3)]"
+Örneğin:  
+"Kişi X, Şirket Y’nin sahibidir ve çok sayıda usulsüzlük iddiasına konu olmuştur [Veri: Raporlar (2, 7, 64, 46, 34, +daha)]. X ayrıca Şirket X’in CEO’sudur [Veri: Raporlar (1, 3)]"
 
-where 1, 2, 3, 7, 34, 46, and 64 represent the id (not the index) of the relevant data report in the provided tables.
+Burada 1, 2, 3, 7, 34, 46 ve 64 rakamları, sağlanan tablolardaki ilgili rapor kayıtlarının **id**’lerini (indis değil) temsil eder.
 
-Do not include information where the supporting evidence for it is not provided.
+Destekleyici kanıt bulunmayan bilgileri dâhil etme.
 
 
 ---Data tables---
@@ -460,71 +459,70 @@ Do not include information where the supporting evidence for it is not provided.
 
 ---Goal---
 
-Generate a response consisting of a list of key points that responds to the user's question, summarizing all relevant information in the input data tables.
+Kullanıcının sorusuna yanıt veren, giriş veri tablolarındaki tüm ilgili bilgileri özetleyen anahtar noktalar listesi oluştur.
 
-You should use the data provided in the data tables below as the primary context for generating the response.
-If you don't know the answer or if the input data tables do not contain sufficient information to provide an answer, just say so. Do not make anything up.
+Yanıtı üretirken birincil bağlam olarak aşağıdaki veri tablolarını kullanmalısın.  
+Cevabı bilmiyorsan veya tablolar soruya yeterli bilgi sağlamıyorsa bunu açıkça belirt; **uydurma**.
 
-Each key point in the response should have the following element:
-- Description: A comprehensive description of the point.
-- Importance Score: An integer score between 0-100 that indicates how important the point is in answering the user's question. An 'I don't know' type of response should have a score of 0.
+Her anahtar nokta şu öğeleri içermelidir:  
+- **Açıklama**: Noktanın kapsamlı açıklaması.  
+- **Önem Skoru**: 0-100 arasında bir tamsayı; noktanın soruyu yanıtlamadaki önemini gösterir. “Bilmiyorum” türü bir yanıt için skor 0 olmalıdır.
 
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
+Yanıt, **“shall”, “may” veya “will”** gibi kip fiillerin orijinal anlamını ve kullanımını korumalıdır.
 
-Points supported by data should list the relevant reports as references as follows:
-"This is an example sentence supported by data references [Data: Reports (report ids)]"
+Veriyle desteklenen noktalar, ilgili raporları şu şekilde referans göstermelidir:  
+"Bu, veri referanslarıyla desteklenen örnek bir cümledir [Veri: Raporlar (rapor id’leri)]"
 
-**Do not list more than 5 record ids in a single reference**. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
+**Tek bir referansta 5’ten fazla kayıt id’si listeleme.** En ilgili ilk 5 id’yi belirt ve daha fazlası olduğunu göstermek için “+daha” ekle.
 
-For example:
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [Data: Reports (2, 7, 64, 46, 34, +more)]. He is also CEO of company X [Data: Reports (1, 3)]"
+Örneğin:  
+"Kişi X, Şirket Y’nin sahibidir ve çok sayıda usulsüzlük iddiasına konu olmuştur [Veri: Raporlar (2, 7, 64, 46, 34, +daha)]. X ayrıca Şirket X’in CEO’sudur [Veri: Raporlar (1, 3)]"
 
-where 1, 2, 3, 7, 34, 46, and 64 represent the id (not the index) of the relevant data report in the provided tables.
+Burada 1, 2, 3, 7, 34, 46 ve 64 rakamları, sağlanan tablolardaki ilgili rapor kayıtlarının **id**’lerini (indis değil) temsil eder.
 
-Do not include information where the supporting evidence for it is not provided.
+Destekleyici kanıt bulunmayan bilgileri dâhil etme.
 
-The response should be JSON formatted as follows:
+Yanıt JSON biçiminde olmalıdır:
 {{
     "points": [
-        {{"description": "Description of point 1 [Data: Reports (report ids)]", "score": score_value}},
-        {{"description": "Description of point 2 [Data: Reports (report ids)]", "score": score_value}}
+        {{"description": "Nokta 1’in açıklaması [Veri: Raporlar (rapor id’leri)]", "score": skor_değeri}},
+        {{"description": "Nokta 2’nin açıklaması [Veri: Raporlar (rapor id’leri)]", "score": skor_değeri}}
     ]
 }}
-All content **must be written in Turkish**.
+Tüm içerik **Türkçe dilinde yazılmalıdır**.
 """
 
 PROMPTS[
     "global_reduce_rag_response"
 ] = """---Role---
 
-You are a helpful assistant responding to questions about a dataset by synthesizing perspectives from multiple analysts.
-
+Birden çok analistin bakış açılarını sentezleyerek, bir veri kümesi hakkındaki soruları yanıtlayan yardımsever bir asistansın.
 
 ---Goal---
 
-Generate a response of the target length and format that responds to the user's question, summarize all the reports from multiple analysts who focused on different parts of the dataset.
+Kullanıcının sorusuna yanıt veren, hedef uzunluk ve formatta bir yanıt üret; veri kümesinin farklı bölümlerine odaklanan analistlerin tüm raporlarını özetle.
 
-Note that the analysts' reports provided below are ranked in the **descending order of importance**.
+Aşağıda verilen analist raporlarının **önem sırasına göre AZALAN** düzende sıralandığını unutma.
 
-If you don't know the answer or if the provided reports do not contain sufficient information to provide an answer, just say so. Do not make anything up.
+Cevabı bilmiyorsan veya raporlar soruya yeterli bilgi sağlamıyorsa bunu açıkça belirt; **uydurma**.
 
-The final response should remove all irrelevant information from the analysts' reports and merge the cleaned information into a comprehensive answer that provides explanations of all the key points and implications appropriate for the response length and format.
+Son yanıt, analist raporlarından alakasız tüm bilgileri kaldırmalı ve temizlenmiş bilgileri, yanıtın uzunluk ve formatına uygun şekilde, tüm kilit noktaları ve etkilerini açıklayan kapsamlı bir yanıt hâlinde birleştirmelidir.
 
-Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
+Yanıtın uzunluk ve formatına uygun olarak bölümler ve açıklamalar ekle. Yanıtı markdown biçiminde düzenle.
 
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
+Yanıt, **“shall”, “may” veya “will”** gibi kip fiillerin orijinal anlamını ve kullanımını korumalıdır.
 
-The response should also preserve all the data references previously included in the analysts' reports, but do not mention the roles of multiple analysts in the analysis process.
+Yanıt ayrıca analist raporlarında yer alan tüm veri referanslarını korumalı, ancak analiz sürecinde birden çok analistin rolünden bahsetmemelidir.
 
-**Do not list more than 5 record ids in a single reference**. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
+**Tek bir referansta 5’ten fazla kayıt id’si listeleme.** En ilgili ilk 5 id’yi belirt ve daha fazlası olduğunu göstermek için “+daha” ekle.
 
-For example:
+Örneğin:
 
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [Data: Reports (2, 7, 34, 46, 64, +more)]. He is also CEO of company X [Data: Reports (1, 3)]"
+"Kişi X, Şirket Y’nin sahibidir ve çok sayıda usulsüzlük iddiasına konu olmuştur [Veri: Raporlar (2, 7, 34, 46, 64, +daha)]. X ayrıca Şirket X’in CEO’sudur [Veri: Raporlar (1, 3)]"
 
-where 1, 2, 3, 7, 34, 46, and 64 represent the id (not the index) of the relevant data record.
+Burada 1, 2, 3, 7, 34, 46 ve 64 rakamları, ilgili veri kaydının **id**’lerini (indis değil) temsil eder.
 
-Do not include information where the supporting evidence for it is not provided.
+Destekleyici kanıt bulunmayan bilgileri dâhil etme.
 
 
 ---Target response length and format---
@@ -539,35 +537,34 @@ Do not include information where the supporting evidence for it is not provided.
 
 ---Goal---
 
-Generate a response of the target length and format that responds to the user's question, summarize all the reports from multiple analysts who focused on different parts of the dataset.
+Kullanıcının sorusuna yanıt veren, hedef uzunluk ve formatta bir yanıt üret; veri kümesinin farklı bölümlerine odaklanan analistlerin tüm raporlarını özetle.
 
-Note that the analysts' reports provided below are ranked in the **descending order of importance**.
+Aşağıda verilen analist raporlarının **önem sırasına göre AZALAN** düzende sıralandığını unutma.
 
-If you don't know the answer or if the provided reports do not contain sufficient information to provide an answer, just say so. Do not make anything up.
+Cevabı bilmiyorsan veya raporlar soruya yeterli bilgi sağlamıyorsa bunu açıkça belirt; **uydurma**.
 
-The final response should remove all irrelevant information from the analysts' reports and merge the cleaned information into a comprehensive answer that provides explanations of all the key points and implications appropriate for the response length and format.
+Son yanıt, analist raporlarından alakasız tüm bilgileri kaldırmalı ve temizlenmiş bilgileri, yanıtın uzunluk ve formatına uygun şekilde, tüm kilit noktaları ve etkilerini açıklayan kapsamlı bir yanıt hâlinde birleştirmelidir.
 
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
+Yanıt, **“shall”, “may” veya “will”** gibi kip fiillerin orijinal anlamını ve kullanımını korumalıdır.
 
-The response should also preserve all the data references previously included in the analysts' reports, but do not mention the roles of multiple analysts in the analysis process.
+Yanıt ayrıca analist raporlarında yer alan tüm veri referanslarını korumalı, ancak analiz sürecinde birden çok analistin rolünden bahsetmemelidir.
 
-**Do not list more than 5 record ids in a single reference**. Instead, list the top 5 most relevant record ids and add "+more" to indicate that there are more.
+**Tek bir referansta 5’ten fazla kayıt id’si listeleme.** En ilgili ilk 5 id’yi belirt ve daha fazlası olduğunu göstermek için “+daha” ekle.
 
-For example:
+Örneğin:
 
-"Person X is the owner of Company Y and subject to many allegations of wrongdoing [Data: Reports (2, 7, 34, 46, 64, +more)]. He is also CEO of company X [Data: Reports (1, 3)]"
+"Kişi X, Şirket Y’nin sahibidir ve çok sayıda usulsüzlük iddiasına konu olmuştur [Veri: Raporlar (2, 7, 34, 46, 64, +daha)]. X ayrıca Şirket X’in CEO’sudur [Veri: Raporlar (1, 3)]"
 
-where 1, 2, 3, 7, 34, 46, and 64 represent the id (not the index) of the relevant data record.
+Burada 1, 2, 3, 7, 34, 46 ve 64 rakamları, ilgili veri kaydının **id**’lerini (indis değil) temsil eder.
 
-Do not include information where the supporting evidence for it is not provided.
-
+Destekleyici kanıt bulunmayan bilgileri dâhil etme.
 
 ---Target response length and format---
 
 {response_type}
 
-Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
-All content **must be written in Turkish**.
+Yanıtın uzunluk ve formatına uygun olarak bölümler ve açıklamalar ekle. Yanıtı markdown biçiminde düzenle.  
+Tüm içerik **Türkçe dilinde yazılmalıdır**.
 """
 
 PROMPTS["fail_response"] = "Üzgünüm, bu soruya yanıt veremiyorum."

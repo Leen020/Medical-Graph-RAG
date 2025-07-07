@@ -60,6 +60,6 @@ async def gpt_4o_mini_complete(
 async def openai_embedding(texts: list[str]) -> np.ndarray:
     openai_async_client = AsyncOpenAI()
     response = await openai_async_client.embeddings.create(
-        model="text-embedding-3-small", input=texts, encoding_format="float"
+        model="text-embedding-3-large", input=texts, encoding_format="float"
     )
     return np.array([dp.embedding for dp in response.data])

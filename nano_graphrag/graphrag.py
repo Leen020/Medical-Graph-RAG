@@ -36,7 +36,7 @@ class GraphRAG:
     # text chunking
     chunk_token_size: int = 1200
     chunk_overlap_token_size: int = 100
-    tiktoken_model_name: str = "gpt-4o"
+    tiktoken_model_name: str = "gpt-4o-mini"
 
     # entity extraction
     entity_extract_max_gleaning: int = 1
