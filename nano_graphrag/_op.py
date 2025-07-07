@@ -31,7 +31,7 @@ from .prompt import GRAPH_FIELD_SEP, PROMPTS
 
 
 def chunking_by_token_size(
-    content: str, overlap_token_size=128, max_token_size=1024, tiktoken_model="gpt-4o"
+    content: str, overlap_token_size=128, max_token_size=1024, tiktoken_model="gpt-4o-mini"
 ):
     tokens = encode_string_by_tiktoken(content, model_name=tiktoken_model)
     results = []
