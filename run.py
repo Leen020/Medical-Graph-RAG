@@ -88,6 +88,7 @@ else:
                 file_path = os.path.join(args.data_path, file_name)
                 try:
                     content = load_high(file_path)
+                    print(f"Text to process: {content}")
                     gid = str_uuid()
                     filename = os.path.splitext(file_name)[0]
                     n4j = creat_metagraph(args, content, gid, n4j, filename)
