@@ -78,14 +78,18 @@ def call_openai_api(chunk):
             delete_problematic_file(chunk)  # Pass the problematic content to delete the file
         raise  # Re-raise the exception after handling
 
+# look why there are spaces
 def split_into_chunks(text, tokens=500):
     encoding = tiktoken.encoding_for_model('gpt-4o-mini')
+    print(f"Text before encoding = {text}")
     words = encoding.encode(text)
+    print(f"Text after encoding = {words}")
     chunks = [] 
     for i in range(0, len(words), tokens):
         chunks.append(' '.join(encoding.decode(words[i:i + tokens])))
-    print(f"chunks = {chunks}")
-    return chunks   
+        print(f"Decoding chunk number {i} = {chunks}")
+    print(f"chunks after decoding = {chunks}")
+    return chunks
 
 def process_chunks(content):
     chunks = split_into_chunks(content)
