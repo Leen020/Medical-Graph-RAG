@@ -28,4 +28,4 @@ def search_words_in_files(directory, words):
 
 # Replace 'your_directory_path' with the directory containing your .txt files
 # Replace 'your_word' with the word you want to search for
-search_words_in_files('dataset', ['heart', 'cardiac', 'Echocardiography', 'Valvular', 'Coronary', 'Artery', 'Myocardial', 'Atrial', 'Arrhythmia', 'heart attack'])
+search_words_in_files('dataset/mimic_tr', ['dallanma', 'Enzim'])
