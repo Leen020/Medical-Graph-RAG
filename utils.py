@@ -254,14 +254,14 @@ def link_context(n4j, gid):
         MATCH (n)
         WHERE n.gid = $gid AND NOT n:Summary
 
-        // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERENCES' relationship
-        MATCH (n)-[r:REFERENCES]->(m)
+        // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERENCE' relationship
+        MATCH (n)-[r:REFERENCE]->(m)
         WHERE NOT m:Summary
 
         // Find all 'o' nodes connected to each 'm', and include the relationship type,
         // while excluding 'Summary' type nodes and 'REFERENCE' relationship
         MATCH (m)-[s]-(o)
-        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCES'
+        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
 
         // Collect and return details in a structured format
         RETURN n.id AS NodeId1, 
