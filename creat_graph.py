@@ -22,7 +22,7 @@ def creat_metagraph(args, content, gid, n4j, file_name):
 
     model_config_dict = {
         "temperature": 0.5,
-        # "max_tokens": 16384,
+        "max_tokens": 500,
         "stream": False  # Set to True if you need streaming responses
     }
     
