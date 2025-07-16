@@ -147,11 +147,7 @@ def run_inference(n4j, questions, results_file="inference_results.json"):
         question_id = question_data["question_id"]
         correct_answer = question_data["answer_letter"]
         
-        question_text += """Soruyu yanıtla. Cevabını yalnızca şu formatta ver:
-
-                Cevap: A
-
-                Açıklama yapma. Yukarıdaki format dışında başka bir biçim kullanma."""
+        question_text += """\nSoruyu yanıtla. Cevabını yalnızca şu formatta ver:\nCevap: B\nAçıklama yapma. Yukarıdaki format dışında başka bir biçim kullanma."""
         
         print(f"\nProcessing Question {idx+1} (ID: {question_id}): {question_text}\n")
 
