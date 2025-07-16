@@ -5,8 +5,8 @@ import numpy as np
 from camel.storages import Neo4jGraph
 import uuid
 from summerize import process_chunks
-import openai
 from openai import AzureOpenAI
+from openai import OpenAI
 # from langchain_openai import AzureOpenAIEmbeddings
 from langchain_community.embeddings import OpenAIEmbeddings
 # from langchain_openai import AzureChatOpenAI
@@ -177,27 +177,6 @@ def add_sum(n4j,content,gid):
 
     return s
 
-# def call_llm(sys, user):
-#     response = AzureOpenAI.chat.completions.create(
-#         model="gpt-4o-mini",
-#         messages=[
-#             {"role": "system", "content": sys},
-#             {"role": "user", "content": f" {user}"},
-#         ],
-#         max_tokens=500,
-#         n=1,
-#         stop=None,
-#         temperature=0.5,
-#     )
-#     return response.choices[0].message.content
-
-# def call_llm(sys, user):
-#     response = llm.invoke([
-#             {"role": "system", "content": sys},
-#             {"role": "user", "content": f" {user}"},
-#         ])
-#     return response.content
-
 def call_llm(sys, user):
     response = llm.chat.completions.create(
         model="gpt-4o-mini",
@@ -210,7 +189,24 @@ def call_llm(sys, user):
         n=1,
         stop=None
     )
+    print("GPT-4o-mini is called in utils.py")
     return response.choices[0].message.content
+
+client_medgemma = OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY"))
+
+def call_medgemma(sys, user):
+    response = client_medgemma.chat.completions.create(
+        model="google/medgemma-27b-text-it",
+        messages=[
+            {"role": "system", "content": sys},
+            {"role": "user", "content": user},
+        ],
+        temperature=0.3,
+        # vLLM‑only extras go in extra_body
+        extra_body={"top_k": 50},
+    )
+    print("Medgemma is called in utils.py")
+    return response.choices[0].message.content.strip()
 
 def find_index_of_largest(nums):
     # Sorting the list while keeping track of the original indexes
@@ -234,7 +230,7 @@ def get_response(n4j, gid, query):
         "Soru: " + query +
         " | Sağlanan bilgiler: " + "".join(selfcont)
     )
-    res = call_llm(sys_prompt_one, user_one)
+    res = call_medgemma(sys_prompt_one, user_one)
     print(f"first response from LLM: {res}\n")
 
     # Önceki yanıt + referanslar
@@ -243,7 +239,7 @@ def get_response(n4j, gid, query):
         " | Önceki yanıt: " + res +
         " | Referanslar: " + "".join(linkcont)
     )
-    res = call_llm(sys_prompt_two, user_two)
+    res = call_medgemma(sys_prompt_two, user_two)
     print(f"second response from LLM: {res}\n")
     return res
 

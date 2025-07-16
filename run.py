@@ -17,7 +17,7 @@ from print_logger import Logger
 import sys
 import json
 # Import the mcq_evaluation module for MCQ evaluation functionality
-from mcq_evaluation import *
+from evaluation import *
 
 # %% set up parser
 parser = argparse.ArgumentParser()
@@ -34,7 +34,7 @@ parser.add_argument('-ingraphmerge', action='store_true')
 parser.add_argument('-crossgraphmerge', action='store_true')
 parser.add_argument('-dataset', type=str, default='mimic_tr', choices=['mimic_tr', 'books', 'mimic_ex'], help='Dataset to use for graph construction')
 parser.add_argument('-data_path', type=str, default='./dataset_test')
-parser.add_argument('-test_data_path', type=str, default='./dataset_ex/report_0.txt')
+parser.add_argument('-test_data_path', type=str, default='./prompt.txt')
 # Modify the argument parser section to include MCQ evaluation options
 parser.add_argument('-mcq_eval', action='store_true', help='Run MCQ evaluation using mcq_evaluation.py')
 parser.add_argument('-questions_file', type=str, default='./prompt.json', help='JSON file containing MCQ questions')
@@ -118,14 +118,13 @@ else:
             if args.evaluate:
                 evaluate_mcq_performance(inference_results)
         else:
-            # Original inference code for non-MCQ evaluation
-            with open(args.test_data_path, 'r') as f:
-                content = f.read()
-                summaries = process_chunks(content)
-                for summary in summaries:
-                    gid = seq_ret(n4j, summary)
-                    print(get_response(n4j, gid, content))
-    
+            question = load_high("./prompt.txt")
+            summaries = process_chunks(question)
+            for summary in summaries:
+                gid = seq_ret(n4j, summary)
+                response = get_response(n4j, gid, question)
+                print(response)
+
     elif args.evaluate and args.mcq_eval:
         # Load previously saved inference results and evaluate using mcq_evaluation.py
         try:

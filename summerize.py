@@ -71,6 +71,7 @@ def call_openai_api(chunk):
              n=1,
             stop=None  
             )
+        print("GPT-4o-mini is called in summerize.py")
         return response.choices[0].message.content
     except BadRequestError as e:
         if "content_filter" in str(e):
@@ -81,14 +82,15 @@ def call_openai_api(chunk):
 # look why there are spaces
 def split_into_chunks(text, tokens=500):
     encoding = tiktoken.encoding_for_model('gpt-4o-mini')
-    print(f"Text before encoding = {text}")
+    print("GPT-4o-mini is called for encoding in summerize.py")
+    # print(f"Text before encoding = {text}")
     words = encoding.encode(text)
-    print(f"Text after encoding = {words}")
+    # print(f"Text after encoding = {words}")
     chunks = [] 
     for i in range(0, len(words), tokens):
         chunks.append(' '.join(encoding.decode(words[i:i + tokens])))
-        print(f"Decoding chunk number {i} = {chunks}")
-    print(f"chunks after decoding = {chunks}")
+    #     print(f"Decoding chunk number {i} = {chunks}")
+    # print(f"chunks after decoding = {chunks}")
     return chunks
 
 def process_chunks(content):
@@ -97,12 +99,13 @@ def process_chunks(content):
     # Processes chunks in parallel
     with ThreadPoolExecutor() as executor:
         try:
+            print(f"chunks in summerize.py/process_chunks = {chunks}")
             responses = list(executor.map(call_openai_api, chunks))
             print(f"responses in summerize.py/process_chunks = {responses}")
         except BadRequestError:
             print("Skipping chunk due to content filter violation.")
             responses = []
-    # print(responses)
+    print(f"All responses in summerize.py/process_chunks = {responses}")
     return responses
 
 def delete_problematic_file(content):

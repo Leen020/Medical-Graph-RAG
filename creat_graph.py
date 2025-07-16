@@ -35,6 +35,7 @@ def creat_metagraph(args, content, gid, n4j, file_name):
         api_version=api_version,
         azure_deployment_name=azure_deployment
     )
+    print("GPT-4o-mini is called in creat_metagraph.py")
 
     # Set up the KnowledgeGraphAgent with AzureOpenAIModel
     kg_agent = KnowledgeGraphAgent(model=azure_model)

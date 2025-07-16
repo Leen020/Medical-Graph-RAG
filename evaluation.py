@@ -13,11 +13,8 @@ def extract_answer_letter(response):
     """Extract the answer letter (A, B, C, D, or E) from the model's response."""
     # Look for patterns like "The answer is A" or "Answer: B" or just "A."
     patterns = [
-        r"(?:answer|option)\s+(?:is|:)\s+([A-E])",  # "answer is A" or "answer: B"
-        r"(?:^|\s)([A-E])\s+is\s+(?:the|correct)",  # "A is the correct"
-        r"(?:^|\s)([A-E])\.",  # "A." as a standalone
-        r"(?:^|\s)([A-E])$"  # Just "A" at the end
-    ]
+       r"(?:Cevap|Doğru seçenek|Seçenek|doğrudur|Answer|Correct option|Option|is correct)?[\s:]([A-Ea-e])[.\s]"
+]
     
     for pattern in patterns:
         matches = re.findall(pattern, response, re.IGNORECASE)
@@ -150,7 +147,12 @@ def run_inference(n4j, questions, results_file="inference_results.json"):
         question_id = question_data["question_id"]
         correct_answer = question_data["answer_letter"]
         
-        question_text += "\nStrictly follow this format: answer is (put your answer letter choice here; do not add the paranthesis) ."
+        question_text += """Soruyu yanıtla. Cevabını yalnızca şu formatta ver:
+
+                Cevap: A
+
+                Açıklama yapma. Yukarıdaki format dışında başka bir biçim kullanma."""
+        
         print(f"\nProcessing Question {idx+1} (ID: {question_id}): {question_text}\n")
 
         # Generate summary for this single question

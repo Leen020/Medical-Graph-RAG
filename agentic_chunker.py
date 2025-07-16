@@ -46,7 +46,7 @@ class AgenticChunker:
             azure_endpoint=azure_endpoint,
             azure_deployment=azure_deployment
         )
-
+        print("GPT-4o-mini is called in agentic_chunker.py")
         print(f"FINISHED INITIALIZING LLM WITHOUT ERRORS")
     # allows batch addition of propositions, while add_proposition handles each one individually.
     def add_propositions(self, propositions):
