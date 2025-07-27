@@ -211,27 +211,29 @@ def link_context(n4j, gid):
         MATCH (n)
         WHERE n.gid = $gid AND NOT n:Summary
 
-        // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERENCES' relationship
-        MATCH (n)-[r:REFERENCE]->(m)
+        // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERANS' relationship
+        MATCH (n)-[r:REFERENCE]->(m:MiddleLayer)
         WHERE NOT m:Summary
 
-        // Find all 'o' nodes connected to each 'm', and include the relationship type,
-        // while excluding 'Summary' type nodes and 'REFERENCE' relationship
-        MATCH (m)-[s]-(o)
+       // Find all 'o' nodes connected to each 'm', and include the relationship type,
+        // while excluding 'Summary' type nodes and 'REFERANS' relationship
+        MATCH (m:MiddleLayer)-[s]->(o:Concepts)
         WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
 
         // Collect and return details in a structured format
-        RETURN n.id AS NodeId1, 
-            m.id AS Mid, 
-            TYPE(r) AS ReferenceType, 
-            collect(DISTINCT {RelationType: type(s), Oid: o.id}) AS Connections
+        RETURN  n.id AS NodeId1,
+            m.reference AS Reference,
+            TYPE(r) AS ReferenceType,  
+            collect(DISTINCT {RelationType: type(s), Concept: o.str, Definition: o.def}) AS Connections
     """
     res = n4j.query(retrieve_query, {'gid': gid})
     for r in res:
         # Expand each set of connections into separate entries with n and m
         for ind, connection in enumerate(r["Connections"]):
-            cont.append("Reference " + str(ind) + ": " + r["NodeId1"] + "has the reference that" + r['Mid'] + connection['RelationType'] + connection['Oid'])
+            cont.append("Reference " + str(ind) + ": " + r["NodeId1"] + "has the reference that" + r['Reference'] + connection["RelationType"] + connection["Concept"] + "with definition: " + connection["Definition"] 
+)
     return cont
+
 
 def ret_context(n4j, gid):
     cont = []

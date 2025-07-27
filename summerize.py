@@ -9,8 +9,12 @@ from openai import BadRequestError
 # Add your own OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
+# Generate a structured summary from the provided medical source (report, paper, or book), strictly adhering to the following categories. The summary should list key information under each category in a concise format: 'CATEGORY_NAME: Key information'. No additional explanations or detailed descriptions are necessary unless directly related to the categories:
+
 sum_prompt = """
-Generate a structured summary from the provided medical source (report, paper, or book), strictly adhering to the following categories. The summary should list key information under each category in a concise format: 'CATEGORY_NAME: Key information'. No additional explanations or detailed descriptions are necessary unless directly related to the categories:
+Generate a structured medical summary from the given input, which may be a sentence, report, paper, book, or multiple-choice question (MCQ). Focus only on the medical content presented in the input (ignore answer choices unless they contain relevant medical facts).
+
+The output **must include all of the following categories** in the exact order below. If there is no information relevant to a category, write "None" as the value. The summary should list key information under each category in a concise format: 'CATEGORY_NAME: Key information'. No additional explanations or detailed descriptions are necessary unless directly related to the categories:
 
 ANATOMICAL_STRUCTURE: Mention any anatomical structures specifically discussed.
 BODY_FUNCTION: List any body functions highlighted.
@@ -33,6 +37,7 @@ MEDICAL_DEVICE: List any medical devices used.
 SUBSTANCE_ABUSE: Note any substance abuse mentioned.
 Each category should be addressed only if relevant to the content of the medical source. Ensure the summary is clear and direct, suitable for quick reference.
 """
+
 
 azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
