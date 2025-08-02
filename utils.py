@@ -6,7 +6,7 @@ from camel.storages import Neo4jGraph
 import uuid
 from summerize import process_chunks
 import openai
-from openai import AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 # from langchain_openai import AzureOpenAIEmbeddings
 from langchain_community.embeddings import OpenAIEmbeddings
 # from langchain_openai import AzureChatOpenAI
@@ -193,14 +193,31 @@ def find_index_of_largest(nums):
     
     return largest_original_index
 
+client_medgemma = OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY"))
+
+def call_medgemma(sys, user):
+    print(f"Calling Medgemma with system prompt: {sys} and user prompt: {user}")
+    response = client_medgemma.chat.completions.create(
+        model="google/medgemma-27b-text-it",
+        messages=[
+            {"role": "system", "content": sys},
+            {"role": "user", "content": user},
+        ],
+        temperature=0.3,
+        # vLLM‑only extras go in extra_body
+        extra_body={"top_k": 50},
+    )
+    print("Medgemma is called in utils.py")
+    return response.choices[0].message.content.strip()
+
 def get_response(n4j, gid, query):
     selfcont = ret_context(n4j, gid)
     linkcont = link_context(n4j, gid)
     user_one = "the question is: " + query + "the provided information is:" +  "".join(selfcont)
-    res = call_llm(sys_prompt_one,user_one)
+    res = call_medgemma(sys_prompt_one,user_one)
     print(f"First response from LLM: {res}\n")
     user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
-    res = call_llm(sys_prompt_two,user_two)
+    res = call_medgemma(sys_prompt_two,user_two)
     print(f"Final response from LLM: {res}\n")
     return res
 
@@ -239,7 +256,7 @@ def ret_context(n4j, gid):
     cont = []
     ret_query = """
     // Match all nodes with a specific gid but not of type "Summary" and collect them
-    MATCH (n)
+    MATCH (n:TopLayer)
     WHERE n.gid = $gid AND NOT n:Summary
     WITH collect(n) AS nodes
 
