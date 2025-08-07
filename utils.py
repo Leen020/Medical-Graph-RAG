@@ -48,23 +48,6 @@ embedding_model = AzureOpenAI(
   api_version="2023-05-15"
 )
 
-# def get_embedding(text, mod = "text-embedding-3-large"):
-#     try:
-#         embeddings_client = AzureOpenAIEmbeddings(
-#             model=mod,
-#             deployment=azure_deployment,
-#             openai_api_key=azure_openai_api_key,
-#             azure_endpoint=azure_endpoint,
-#             openai_api_version="2024-08-01-preview"
-#         )
-#         response = embeddings_client.embed_query(text)
-#         print(response)
-#         return response
-#     except Exception as e:
-#         print("Embedding error:", e)
-#         print("Error occurred for input text:", text)
-#         return None
-
 def get_embedding(text, mod="text-embedding-3-large"):
     try:
         # Attempt to create the embedding
@@ -149,27 +132,6 @@ def add_sum(n4j,content,gid):
 
     return s
 
-# def call_llm(sys, user):
-#     response = AzureOpenAI.chat.completions.create(
-#         model="gpt-4o-mini",
-#         messages=[
-#             {"role": "system", "content": sys},
-#             {"role": "user", "content": f" {user}"},
-#         ],
-#         max_tokens=500,
-#         n=1,
-#         stop=None,
-#         temperature=0.5,
-#     )
-#     return response.choices[0].message.content
-
-# def call_llm(sys, user):
-#     response = llm.invoke([
-#             {"role": "system", "content": sys},
-#             {"role": "user", "content": f" {user}"},
-#         ])
-#     return response.content
-
 def call_llm(sys, user):
     response = llm.chat.completions.create(
         model="gpt-4o-mini",
@@ -193,31 +155,31 @@ def find_index_of_largest(nums):
     
     return largest_original_index
 
-client_medgemma = OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY"))
+# client_medgemma = OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY"))
 
-def call_medgemma(sys, user):
-    print(f"Calling Medgemma with system prompt: {sys} and user prompt: {user}")
-    response = client_medgemma.chat.completions.create(
-        model="google/medgemma-27b-text-it",
-        messages=[
-            {"role": "system", "content": sys},
-            {"role": "user", "content": user},
-        ],
-        temperature=0.3,
-        # vLLM‑only extras go in extra_body
-        extra_body={"top_k": 50},
-    )
-    print("Medgemma is called in utils.py")
-    return response.choices[0].message.content.strip()
+# def call_medgemma(sys, user):
+#     print(f"Calling Medgemma with system prompt: {sys} and user prompt: {user}")
+#     response = client_medgemma.chat.completions.create(
+#         model="google/medgemma-27b-text-it",
+#         messages=[
+#             {"role": "system", "content": sys},
+#             {"role": "user", "content": user},
+#         ],
+#         temperature=0.3,
+#         # vLLM‑only extras go in extra_body
+#         extra_body={"top_k": 50},
+#     )
+#     print("Medgemma is called in utils.py")
+#     return response.choices[0].message.content.strip()
 
 def get_response(n4j, gid, query):
     selfcont = ret_context(n4j, gid)
     linkcont = link_context(n4j, gid)
     user_one = "the question is: " + query + "the provided information is:" +  "".join(selfcont)
-    res = call_medgemma(sys_prompt_one,user_one)
+    res = call_llm(sys_prompt_one,user_one)
     print(f"First response from LLM: {res}\n")
     user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
-    res = call_medgemma(sys_prompt_two,user_two)
+    res = call_llm(sys_prompt_two,user_two)
     print(f"Final response from LLM: {res}\n")
     return res
 
@@ -247,8 +209,10 @@ def link_context(n4j, gid):
     for r in res:
         # Expand each set of connections into separate entries with n and m
         for ind, connection in enumerate(r["Connections"]):
-            cont.append("Reference " + str(ind) + ": " + r["NodeId1"] + "has the reference that" + r['Reference'] + connection["RelationType"] + connection["Concept"] + "with definition: " + connection["Definition"] 
+            cont.append("Reference " + str(ind) + ": " + r["NodeId1"] + " has the reference that " + r['Reference'] + " " + connection["RelationType"] + " " + connection["Concept"] + " with definition: " + connection["Definition"] 
 )
+    print(f"link_context is called to retrieve references for gid {gid}.")
+    print(f"References retrieved: {cont} with token length of {len(cont)} ")
     return cont
 
 
@@ -272,7 +236,9 @@ def ret_context(n4j, gid):
     """
     res = n4j.query(ret_query, {'gid': gid})
     for r in res:
-        cont.append(r['NodeId1'] + r['relType'] + r['NodeId2'])
+        cont.append(r['NodeId1'] + " " + r['relType'] + " " + r['NodeId2'])
+    print(f"ret_context is called to retrieve context for gid {gid}.")
+    print(f"Context retrieved: {cont} with token length of {len(cont)} ")
     return cont
 
 def merge_similar_nodes(n4j, gid):
