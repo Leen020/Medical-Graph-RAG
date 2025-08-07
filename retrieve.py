@@ -21,7 +21,7 @@ def fetch_embeddings_from_neo4j(n4j):
 
 def build_knn_index(embeddings, n_neighbors=60):
     knn = NearestNeighbors(n_neighbors=n_neighbors, metric="cosine")
-    knn.fit(embeddings) 
+    knn.fit(embeddings)
     return knn
 
 
@@ -70,4 +70,3 @@ def seq_ret(n4j, query_summary, top_k=15, verbose=False):
         raise RuntimeError("LLM returned unrecognised ratings for all neighbours.")
 
     return gids[best_idx]
-
