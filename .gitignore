@@ -15,12 +15,10 @@ __pycache__
 
 # ignore special files or folds
 .DS_Store
-processing.log
 *.log
-*.log
+*.<log
 /.vs
-*.log
 *.json
-processing.log
 response
 verius_server.py
+gpt4omini.py
