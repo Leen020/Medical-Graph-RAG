@@ -190,14 +190,14 @@ def link_context(n4j, gid):
         MATCH (n)
         WHERE n.gid = $gid AND NOT n:Summary
 
-        // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERANS' relationship
-        MATCH (n)-[r:REFERANS]->(m:MiddleLayer)
+        // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERENCE' relationship
+        MATCH (n)-[r:REFERENCE]->(m:MiddleLayer)
         WHERE NOT m:Summary
 
        // Find all 'o' nodes connected to each 'm', and include the relationship type,
-        // while excluding 'Summary' type nodes and 'REFERANS' relationship
-        MATCH (m:MiddleLayer)-[s]->(o:TurkishConcepts)
-        WHERE NOT o:Summary AND TYPE(s) <> 'REFERANS'
+        // while excluding 'Summary' type nodes and 'REFERENCE' relationship
+        MATCH (m:MiddleLayer)-[s]->(o:Concepts)
+        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
 
         WITH n.id AS NodeId1,
             m.reference AS Reference,
