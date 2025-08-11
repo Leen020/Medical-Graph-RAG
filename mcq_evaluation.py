@@ -14,11 +14,8 @@ def extract_answer_letter(response):
     """Extract the answer letter (A, B, C, D, or E) from the model's response."""
     # Look for patterns like "The answer is A" or "Answer: B" or just "A."
     patterns = [
-        r"(?:answer|option)\s+(?:is|:)\s+([A-E])",  # "answer is A" or "answer: B"
-        r"(?:^|\s)([A-E])\s+is\s+(?:the|correct)",  # "A is the correct"
-        r"(?:^|\s)([A-E])\.",  # "A." as a standalone
-        r"(?:^|\s)([A-E])$"  # Just "A" at the end
-    ]
+       r"(?:Cevap|Doğru seçenek|Seçenek|doğrudur|Answer|Correct option|Option|is correct)?[\s:]([A-Ea-e])[.\s]"
+]
     
     for pattern in patterns:
         matches = re.findall(pattern, response, re.IGNORECASE)
