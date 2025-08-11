@@ -199,11 +199,12 @@ def link_context(n4j, gid):
         MATCH (m:MiddleLayer)-[s]->(o:Concepts)
         WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
 
-        // Collect and return details in a structured format
-        RETURN  n.id AS NodeId1,
+        WITH n.id AS NodeId1,
             m.reference AS Reference,
-            TYPE(r) AS ReferenceType,  
-            collect(DISTINCT {RelationType: type(s), Concept: o.str, Definition: o.def}) AS Connections
+            TYPE(r) AS ReferenceType,
+            collect(DISTINCT {RelationType: type(s), Concept: o.str, Definition: o.def})[0..5] AS Connections
+        RETURN NodeId1, Reference, ReferenceType, Connections
+        LIMIT 450
     """
     res = n4j.query(retrieve_query, {'gid': gid})
     for r in res:
