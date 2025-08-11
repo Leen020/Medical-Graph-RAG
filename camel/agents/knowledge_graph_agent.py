@@ -42,68 +42,54 @@ except (ImportError, AttributeError):
 
 
 text_prompt = """
-You are tasked with extracting nodes and relationships from given content and 
-structures them into Node and Relationship objects. Here's the outline of what 
-you needs to do:
+Verilen içerikten düğümleri (nodes) ve ilişkileri (relationships) çıkarmanız ve bunları Node ile Relationship nesnelerine dönüştürmeniz bekleniyor. İşte yapmanız gerekenlerin özeti:
 
-Content Extraction:
-You should be able to process input content and identify entities mentioned 
-within it.
-Entities can be any noun phrases or concepts that represent distinct entities 
-in the context of the given content.
+İçerik Çıkarma:
+Girdi içeriğini işleyebilmeniz ve içinde geçen varlıkları (entities) tanımlayabilmeniz gerekir.
+Varlıklar, bağlamda ayrı varlıkları temsil eden ad öbekleri veya kavramlar olabilir.
 
-Node Extraction:
-For each identified entity, you should create a Node object.
-Each Node object should have a unique identifier (id) and a type (type).
-Additional properties associated with the node can also be extracted and 
-stored.
+Düğüm (Node) Çıkarma:
+Tanımlanan her varlık için bir Node nesnesi oluşturmalısınız.
+Her Node nesnesinin benzersiz bir tanımlayıcısı (id) ve bir türü (type) olmalıdır.
+Düğüme ait ek özellikler de çıkarılıp saklanabilir.
 
-Relationship Extraction:
-You should identify relationships between entities mentioned in the content.
-For each relationship, create a Relationship object.
-A Relationship object should have a subject (subj) and an object (obj) which 
-are Node objects representing the entities involved in the relationship.
-Each relationship should also have a type (type), and additional properties if 
-applicable.
+İlişki (Relationship) Çıkarma:
+İçerikte geçen varlıklar arasındaki ilişkileri belirlemelisiniz.
+Her ilişki için bir Relationship nesnesi oluşturun.
+Bir Relationship nesnesi, ilişkide yer alan varlıkları temsil eden Node nesneleri olan bir özne (subj) ve bir nesneye (obj) sahiptir.
+Her ilişkinin ayrıca bir türü (type) ve uygulanabilirse ek özellikleri olmalıdır.
 
-Output Formatting:
-The extracted nodes and relationships should be formatted as instances of the 
-provided Node and Relationship classes.
-Ensure that the extracted data adheres to the structure defined by the classes.
-Output the structured data in a format that can be easily validated against 
-the provided code.
+Çıktı Biçimlendirme:
+Çıkarılan düğüm ve ilişkiler, sağlanan Node ile Relationship sınıflarının örnekleri olarak biçimlendirilmelidir.
+Elde edilen verilerin sınıflarda tanımlanan yapıya uygun olduğundan emin olun.
+Çıktıyı, verilen koda karşı kolayca doğrulanabilecek bir biçimde üretin.
 
-Instructions for you:
-Read the provided content thoroughly.
-Identify distinct entities mentioned in the content and categorize them as 
-nodes.
-Determine relationships between these entities and represent them as directed 
-relationships.
-Provide the extracted nodes and relationships in the specified format below.
-Example for you:
+Sizin İçin Talimatlar:
+– Verilen içeriği dikkatlice okuyun.
+– İçerikte geçen farklı varlıkları belirleyin ve bunları düğümler olarak kategorize edin.
+– Bu varlıklar arasındaki ilişkileri saptayın ve yönlendirilmiş ilişkiler şeklinde temsil edin.
+– Çıkarılan düğüm ve ilişkileri aşağıdaki belirtilen biçimde verin.
 
-Example Content:
-"John works at XYZ Corporation. He is a software engineer. The company is 
-located in New York City."
+Sizin için Örnek:
 
-Expected Output:
+Örnek İçerik:
+"Ahmet, XYZ Şirketi'nde çalışıyor. Kendisi bir yazılım mühendisidir. Şirket İstanbul'da bulunmaktadır."
 
-Nodes:
+Beklenen Çıktı:
 
-Node(id='John', type='Person')
-Node(id='XYZ Corporation', type='Organization')
-Node(id='New York City', type='Location')
+Düğümler:
 
-Relationships:
+Node(id='Ahmet', type='Person')
+Node(id='XYZ Şirketi', type='Organization')
+Node(id='İstanbul', type='Location')
 
-Relationship(subj=Node(id='John', type='Person'), obj=Node(id='XYZ 
-Corporation', type='Organization'), type='WorksAt')
-Relationship(subj=Node(id='John', type='Person'), obj=Node(id='New York City', 
-type='Location'), type='ResidesIn')
+İlişkiler:
+
+Relationship(subj=Node(id='Ahmet', type='Person'), obj=Node(id='XYZ Şirketi', type='Organization'), type='Calisir')
+Relationship(subj=Node(id='Ahmet', type='Person'), obj=Node(id='İstanbul', type='Location'), type='IkametEder')
 
 ===== TASK =====
-Please extracts nodes and relationships from given content and structures them 
-into Node and Relationship objects. 
+Lütfen verilen içerikten düğümleri ve ilişkileri Türkçe dilinde çıkararak bunları Node ve Relationship nesnelerine yapılandırın.
 
 {task}
 """
@@ -134,8 +120,8 @@ class KnowledgeGraphAgent(ChatAgent):
             role_name="Graphify",
             role_type=RoleType.ASSISTANT,
             meta_dict=None,
-            content="Your mission is to transform unstructured content "
-            "into structured graph data. Extract nodes and relationships with "
+            content="Your mission is to transform unstructured content in Turkish Language"
+            "into structured graph data also in Turkish. Extract nodes and relationships with "
             "precision, and let the connections unfold. Your graphs will "
             "illuminate the hidden connections within the chaos of "
             "information.",
