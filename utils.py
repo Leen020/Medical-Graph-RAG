@@ -191,18 +191,18 @@ def link_context(n4j, gid):
         WHERE n.gid = $gid AND NOT n:Summary
 
         // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERANS' relationship
-        MATCH (n)-[r:REFERENCE]->(m:MiddleLayer)
+        MATCH (n)-[r:REFERANS]->(m:MiddleLayer)
         WHERE NOT m:Summary
 
        // Find all 'o' nodes connected to each 'm', and include the relationship type,
         // while excluding 'Summary' type nodes and 'REFERANS' relationship
-        MATCH (m:MiddleLayer)-[s]->(o:Concepts)
-        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
+        MATCH (m:MiddleLayer)-[s]->(o:TurkishConcepts)
+        WHERE NOT o:Summary AND TYPE(s) <> 'REFERANS'
 
         WITH n.id AS NodeId1,
             m.reference AS Reference,
             TYPE(r) AS ReferenceType,
-            collect(DISTINCT {RelationType: type(s), Concept: o.str, Definition: o.def})[0..5] AS Connections
+            collect(DISTINCT {RelationType: type(s), Concept: o.turkish, Definition: o.tr_def}) AS Connections
         RETURN NodeId1, Reference, ReferenceType, Connections
         LIMIT 450
     """
