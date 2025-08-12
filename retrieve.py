@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
 sys_p = """
-Assess the similarity of the two provided summaries and return a rating from these options: 'very similar', 'similar', 'general', 'not similar', 'totally not similar'. Provide only the rating.
+İki verilen özetin benzerliğini değerlendirip şu seçeneklerden biriyle puanlayın: 'very similar', 'similar', 'general', 'not similar', 'totally not similar'. Yalnızca derecelendirmeyi döndürün
 """
 
 def fetch_embeddings_from_neo4j(n4j):

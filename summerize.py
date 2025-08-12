@@ -12,30 +12,29 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 # Generate a structured summary from the provided medical source (report, paper, or book), strictly adhering to the following categories. The summary should list key information under each category in a concise format: 'CATEGORY_NAME: Key information'. No additional explanations or detailed descriptions are necessary unless directly related to the categories:
 
 sum_prompt = """
-Generate a structured medical summary from the given input, which may be a sentence, report, paper, book, or multiple-choice question (MCQ). Focus only on the medical content presented in the input (ignore answer choices unless they contain relevant medical facts).
+Verilen tıbbi kaynaktan (rapor, makale veya kitap) aşağıdaki kategorilere kesinlikle uyarak yapılandırılmış bir özet oluşturun. Özet, her kategori altında kilit bilgileri 'CATEGORY_NAME: Önemli bilgi' biçiminde kısaca listelemelidir. Kategorilerle doğrudan ilişkili olmadıkça ek açıklama veya ayrıntılı tanımlara gerek yoktur:
 
-The output **must include all of the following categories** in the exact order below. If there is no information relevant to a category, write "None" as the value. The summary should list key information under each category in a concise format: 'CATEGORY_NAME: Key information'. No additional explanations or detailed descriptions are necessary unless directly related to the categories:
+ANATOMICAL_STRUCTURE: Özellikle ele alınan anatomik yapıları belirtin.
+BODY_FUNCTION: Vurgulanan vücut işlevlerini listeleyin.
+BODY_MEASUREMENT: Kan basıncı, vücut sıcaklığı gibi normal ölçümleri ekleyin.
+BM_RESULT: Bu ölçümlerin sonuçları.
+BM_UNIT: Her ölçümün birimleri.
+BM_VALUE: Bu ölçümlerin değerleri.
+LABORATORY_DATA: Bahsedilen laboratuvar testlerini özetleyin.
+LAB_RESULT: Bu testlerin sonuçları (örn. 'artmış', 'azalmış').
+LAB_VALUE: Testlerden elde edilen spesifik değerler.
+LAB_UNIT: Bu değerlerin ölçü birimleri.
+MEDICINE: Ele alınan ilaçların adları.
+MED_DOSE, MED_DURATION, MED_FORM, MED_FREQUENCY, MED_ROUTE, MED_STATUS, MED_STRENGTH, MED_UNIT, MED_TOTALDOSE: Her ilaç için bu özniteliklere dair öz bilgileri verin.
+PROBLEM: Tespit edilen tıbbi durum veya bulguları belirtin.
+PROCEDURE: Herhangi bir prosedürü tanımlayın.
+PROCEDURE_RESULT: Bu prosedürlerin sonuçları.
+PROC_METHOD: Kullanılan yöntemler.
+SEVERITY: Bahsi geçen durumların şiddeti.
+MEDICAL_DEVICE: Kullanılan tıbbi cihazları listeleyin.
+SUBSTANCE_ABUSE: Belirtilen madde kötüye kullanımı varsa belirtin.
 
-ANATOMICAL_STRUCTURE: Mention any anatomical structures specifically discussed.
-BODY_FUNCTION: List any body functions highlighted.
-BODY_MEASUREMENT: Include normal measurements like blood pressure or temperature.
-BM_RESULT: Results of these measurements.
-BM_UNIT: Units for each measurement.
-BM_VALUE: Values of these measurements.
-LABORATORY_DATA: Outline any laboratory tests mentioned.
-LAB_RESULT: Outcomes of these tests (e.g., 'increased', 'decreased').
-LAB_VALUE: Specific values from the tests.
-LAB_UNIT: Units of measurement for these values.
-MEDICINE: Name medications discussed.
-MED_DOSE, MED_DURATION, MED_FORM, MED_FREQUENCY, MED_ROUTE, MED_STATUS, MED_STRENGTH, MED_UNIT, MED_TOTALDOSE: Provide concise details for each medication attribute.
-PROBLEM: Identify any medical conditions or findings.
-PROCEDURE: Describe any procedures.
-PROCEDURE_RESULT: Outcomes of these procedures.
-PROC_METHOD: Methods used.
-SEVERITY: Severity of the conditions mentioned.
-MEDICAL_DEVICE: List any medical devices used.
-SUBSTANCE_ABUSE: Note any substance abuse mentioned.
-Each category should be addressed only if relevant to the content of the medical source. Ensure the summary is clear and direct, suitable for quick reference.
+Her kategori yalnızca tıbbi kaynağın içeriğiyle ilgiliyse ele alınmalıdır. Özet, hızlı başvuru için net ve doğrudan olmalıdır.
 """
 
 
@@ -48,19 +47,6 @@ llm = AzureOpenAI(
   api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
   api_version="2024-08-01-preview"
 )
-
-# def call_openai_api(chunk):
-#     try:
-#         response = llm.invoke([
-#                 {"role": "system", "content": sum_prompt},
-#                 {"role": "user", "content": f" {chunk}"},
-#             ])
-#         return response.content
-#     except BadRequestError as e:
-#         if "content_filter" in str(e):
-#             print(f"Content filter triggered. Deleting problematic file...")
-#             delete_problematic_file(chunk)  # Pass the problematic content to delete the file
-#         raise  # Re-raise the exception after handling
 
 def call_openai_api(chunk):
     try:

@@ -33,7 +33,7 @@ parser.add_argument('-trinity_gid1', type=str)
 parser.add_argument('-trinity_gid2', type=str)
 parser.add_argument('-ingraphmerge', action='store_true')
 parser.add_argument('-crossgraphmerge', action='store_true')
-parser.add_argument('-dataset', type=str, default='mimic_ex')
+parser.add_argument('-dataset', type=str, default='mimic_tr', choices=['mimic_tr', 'books', 'mimic_ex'], help='Dataset to use for graph construction')
 parser.add_argument('-data_path', type=str, default='./dataset_test')
 parser.add_argument('-test_data_path', type=str, default='./dataset_ex/report_0.txt')
 # Modify the argument parser section to include MCQ evaluation options
@@ -77,7 +77,7 @@ else:
     )
 
     if args.construct_graph: 
-        if args.dataset == 'mimic_ex' or 'books':
+        if args.dataset == 'mimic_tr' or args.dataset == 'books' or args.dataset == 'mimic_ex':
             files =sorted(
                 [file for file in os.listdir(args.data_path) if os.path.isfile(os.path.join(args.data_path, file))],
                 key=natural_sort_key

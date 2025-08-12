@@ -12,11 +12,11 @@ from langchain_community.embeddings import OpenAIEmbeddings
 # from langchain_openai import AzureChatOpenAI
 
 sys_prompt_one = """
-Please answer the question using insights supported by provided graph-based data relevant to medical information.
+Lütfen soruyu, sağlanan tıbbi bilgiyle ilgili grafik tabanlı veriler tarafından desteklenen bulguları kullanarak yanıtlayın.
 """
 
 sys_prompt_two = """
-Modify the response to the question using the provided references. Include precise citations relevant to your answer. You may use multiple citations simultaneously, denoting each with the reference index number below you explanation with the reference title. For example, cite the first and third documents as [1][3]. If the references do not pertain to the response, simply provide a concise explaining answer to the original question 
+Yanıtı, sağlanan referansları kullanarak düzenleyin. Cevabınızla ilgili doğru atıfları ekleyin. Birden fazla atıfı aynı anda kullanabilirsiniz; her birini referans dizin numarasıyla belirtin. Örneğin, birinci ve üçüncü belgeleri [1][3] biçiminde gösterin. Referanslar yanıtla ilgili değilse, yalnızca orijinal soruya kısa bir yanıt verin.
 """
 
 azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -24,17 +24,6 @@ azure_deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
 azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 embedding_endpoint = os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT")
 
-# llm = AzureChatOpenAI(
-#             model="gpt-4o-mini", 
-#             api_key=azure_openai_api_key,
-#             api_version="2024-08-01-preview",
-#             azure_endpoint=azure_endpoint,
-#             azure_deployment=azure_deployment,
-#             temperature=0.5,
-#             max_tokens=500, 
-#             n=1,
-#             stop_sequences=None
-#     )
 
 llm = AzureOpenAI(
   azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"), 
@@ -173,14 +162,29 @@ def find_index_of_largest(nums):
 #     return response.choices[0].message.content.strip()
 
 def get_response(n4j, gid, query):
+    print("entering get_response")
     selfcont = ret_context(n4j, gid)
+    print(f"self context: {selfcont}\n")
+
     linkcont = link_context(n4j, gid)
-    user_one = "the question is: " + query + "the provided information is:" +  "".join(selfcont)
-    res = call_llm(sys_prompt_one,user_one)
-    print(f"First response from LLM: {res}\n")
-    user_two = "the question is: " + query + "the last response of it is:" +  res + "the references are: " +  "".join(linkcont)
-    res = call_llm(sys_prompt_two,user_two)
-    print(f"Final response from LLM: {res}\n")
+    print(f"link context: {linkcont}\n")
+
+    # Soru + bağlam
+    user_one = (
+        "Soru: " + query +
+        " | Sağlanan bilgiler: " + "".join(selfcont)
+    )
+    res = call_llm(sys_prompt_one, user_one)
+    print(f"first response from LLM: {res}\n")
+
+    # Önceki yanıt + referanslar
+    user_two = (
+        "Soru: " + query +
+        " | Önceki yanıt: " + res +
+        " | Referanslar: " + "".join(linkcont)
+    )
+    res = call_llm(sys_prompt_two, user_two)
+    print(f"second response from LLM: {res}\n")
     return res
 
 def link_context(n4j, gid):
@@ -191,18 +195,18 @@ def link_context(n4j, gid):
         WHERE n.gid = $gid AND NOT n:Summary
 
         // Find all 'm' nodes where 'm' is a reference of 'n' via a 'REFERANS' relationship
-        MATCH (n)-[r:REFERENCE]->(m:MiddleLayer)
+        MATCH (n)-[r:REFERANS]->(m:MiddleLayer)
         WHERE NOT m:Summary
 
        // Find all 'o' nodes connected to each 'm', and include the relationship type,
         // while excluding 'Summary' type nodes and 'REFERANS' relationship
-        MATCH (m:MiddleLayer)-[s]->(o:Concepts)
-        WHERE NOT o:Summary AND TYPE(s) <> 'REFERENCE'
+        MATCH (m:MiddleLayer)-[s]->(o:TurkishConcepts)
+        WHERE NOT o:Summary AND TYPE(s) <> 'REFERANS'
 
         WITH n.id AS NodeId1,
             m.reference AS Reference,
             TYPE(r) AS ReferenceType,
-            collect(DISTINCT {RelationType: type(s), Concept: o.str, Definition: o.def})[0..5] AS Connections
+            collect(DISTINCT {RelationType: type(s), Concept: o.turkish, Definition: o.tr_def}) AS Connections
         RETURN NodeId1, Reference, ReferenceType, Connections
         LIMIT 450
     """
@@ -210,7 +214,7 @@ def link_context(n4j, gid):
     for r in res:
         # Expand each set of connections into separate entries with n and m
         for ind, connection in enumerate(r["Connections"]):
-            cont.append("Reference " + str(ind) + ": " + r["NodeId1"] + " has the reference that " + r['Reference'] + " " + connection["RelationType"] + " " + connection["Concept"] + " with definition: " + connection["Definition"] 
+            cont.append("Referans" + str(ind) + ": " + r["NodeId1"] + " düğümü şu referansa sahiptir: " + r['Reference'] + " " + connection["RelationType"] + " " + connection["Concept"] + " ve tanımı: " + connection["Definition"] 
 )
     print(f"link_context is called to retrieve references for gid {gid}.")
     print(f"References retrieved: {cont} with token length of {len(cont)} ")
@@ -273,57 +277,6 @@ def merge_similar_nodes(n4j, gid):
             RETURN count(*)
         """
         result = n4j.query(merge_query)
-    return result
-
-# def merge_similar_nodes(n4j, gid):
-    """
-    Merges similar nodes in the Neo4j graph based on cosine similarity of their embeddings.
-
-    Args:
-        n4j: Neo4j connection object.
-        gid: Graph identifier to scope the merge operation.
-
-    Returns:
-        Result of the merge query execution.
-    """
-    # Define your merge query with safeguards for null embeddings
-    if gid:
-        merge_query = """
-            WITH 0.5 AS threshold
-            MATCH (n), (m)
-            WHERE NOT n:Summary AND NOT m:Summary 
-              AND n.gid = m.gid 
-              AND n.gid = $gid 
-              AND n <> m 
-              AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) 
-              AND n.embedding IS NOT NULL 
-              AND m.embedding IS NOT NULL
-            WITH n, m, gds.similarity.cosine(n.embedding, m.embedding) AS similarity
-            WHERE similarity > threshold
-            WITH head(collect([n, m])) as nodes
-            CALL apoc.refactor.mergeNodes(nodes, {properties: 'overwrite', mergeRels: true})
-            YIELD node
-            RETURN count(*)
-        """
-        result = n4j.query(merge_query, {'gid': gid})
-    else:
-        merge_query = """
-            WITH 0.5 AS threshold
-            MATCH (n), (m)
-            WHERE NOT n:Summary AND NOT m:Summary 
-              AND n <> m 
-              AND apoc.coll.sort(labels(n)) = apoc.coll.sort(labels(m)) 
-              AND n.embedding IS NOT NULL 
-              AND m.embedding IS NOT NULL
-            WITH n, m, gds.similarity.cosine(n.embedding, m.embedding) AS similarity
-            WHERE similarity > threshold
-            WITH head(collect([n, m])) as nodes
-            CALL apoc.refactor.mergeNodes(nodes, {properties: 'overwrite', mergeRels: true})
-            YIELD node
-            RETURN count(*)
-        """
-        result = n4j.query(merge_query)
-    
     return result
 
 def store_summary_embeddings(n4j):
