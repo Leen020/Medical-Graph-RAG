@@ -208,7 +208,6 @@ def link_context(n4j, gid):
             TYPE(r) AS ReferenceType,
             collect(DISTINCT {RelationType: type(s), Concept: o.turkish, Definition: o.tr_def}) AS Connections
         RETURN NodeId1, Reference, ReferenceType, Connections
-        LIMIT 450
     """
     res = n4j.query(retrieve_query, {'gid': gid})
     for r in res:
