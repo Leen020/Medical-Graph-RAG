@@ -12,29 +12,31 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 # Generate a structured summary from the provided medical source (report, paper, or book), strictly adhering to the following categories. The summary should list key information under each category in a concise format: 'CATEGORY_NAME: Key information'. No additional explanations or detailed descriptions are necessary unless directly related to the categories:
 
 sum_prompt = """
-Verilen tıbbi kaynaktan (rapor, makale veya kitap) aşağıdaki kategorilere kesinlikle uyarak yapılandırılmış bir özet oluşturun. Özet, her kategori altında kilit bilgileri 'CATEGORY_NAME: Önemli bilgi' biçiminde kısaca listelemelidir. Kategorilerle doğrudan ilişkili olmadıkça ek açıklama veya ayrıntılı tanımlara gerek yoktur:
+Verilen girdiden (bir cümle, rapor, makale, kitap veya çoktan seçmeli soru (MCQ) olabilir) yapılandırılmış bir tıbbi özet oluşturun. Yalnızca girdide sunulan tıbbi içeriğe odaklanın (cevap seçeneklerini, ilgili tıbbi gerçekler içermedikçe yok sayın).
 
-ANATOMICAL_STRUCTURE: Özellikle ele alınan anatomik yapıları belirtin.
+Çıktı aşağıda belirtilen sırayla aşağıdaki tüm kategorileri içermelidir. Bir kategoriyle ilgili bilgi yoksa değer olarak "None" yazın. Özet, her kategori altında temel bilgileri şu özlü biçimde listelemelidir: 'CATEGORY_NAME: Önemli bilgi'. Kategorilerle doğrudan ilgili olmadıkça ek açıklamalara veya ayrıntılı betimlemelere gerek yoktur:
+
+ANATOMICAL_STRUCTURE: Özellikle ele alınan anatomik yapılardan bahsedin.
 BODY_FUNCTION: Vurgulanan vücut işlevlerini listeleyin.
-BODY_MEASUREMENT: Kan basıncı, vücut sıcaklığı gibi normal ölçümleri ekleyin.
+BODY_MEASUREMENT: Kan basıncı veya vücut sıcaklığı gibi normal ölçümleri ekleyin.
 BM_RESULT: Bu ölçümlerin sonuçları.
 BM_UNIT: Her ölçümün birimleri.
 BM_VALUE: Bu ölçümlerin değerleri.
 LABORATORY_DATA: Bahsedilen laboratuvar testlerini özetleyin.
-LAB_RESULT: Bu testlerin sonuçları (örn. 'artmış', 'azalmış').
+LAB_RESULT: Bu testlerin sonuçları (örn., "artmış", "azalmış").
 LAB_VALUE: Testlerden elde edilen spesifik değerler.
 LAB_UNIT: Bu değerlerin ölçü birimleri.
-MEDICINE: Ele alınan ilaçların adları.
-MED_DOSE, MED_DURATION, MED_FORM, MED_FREQUENCY, MED_ROUTE, MED_STATUS, MED_STRENGTH, MED_UNIT, MED_TOTALDOSE: Her ilaç için bu özniteliklere dair öz bilgileri verin.
-PROBLEM: Tespit edilen tıbbi durum veya bulguları belirtin.
-PROCEDURE: Herhangi bir prosedürü tanımlayın.
-PROCEDURE_RESULT: Bu prosedürlerin sonuçları.
+MEDICINE: Ele alınan ilaçların adlarını yazın.
+MED_DOSE, MED_DURATION, MED_FORM, MED_FREQUENCY, MED_ROUTE, MED_STATUS, MED_STRENGTH, MED_UNIT, MED_TOTALDOSE: Her ilaç özniteliği için özlü ayrıntılar verin.
+PROBLEM: Herhangi bir tıbbi durum veya bulguyu belirtin.
+PROCEDURE: Herhangi bir işlemi (prosedürü) açıklayın.
+PROCEDURE_RESULT: Bu işlemlerin sonuçları.
 PROC_METHOD: Kullanılan yöntemler.
-SEVERITY: Bahsi geçen durumların şiddeti.
+SEVERITY: Bahsedilen durumların şiddeti.
 MEDICAL_DEVICE: Kullanılan tıbbi cihazları listeleyin.
-SUBSTANCE_ABUSE: Belirtilen madde kötüye kullanımı varsa belirtin.
+SUBSTANCE_ABUSE: Bahsedilen herhangi bir madde kötüye kullanımını not edin.
 
-Her kategori yalnızca tıbbi kaynağın içeriğiyle ilgiliyse ele alınmalıdır. Özet, hızlı başvuru için net ve doğrudan olmalıdır.
+Her kategori yalnızca tıbbi kaynağın içeriğiyle ilgiliyse ele alınmalıdır. Özeti hızlı başvuruya uygun olacak şekilde açık ve doğrudan tutun.
 """
 
 

@@ -43,7 +43,7 @@ parser.add_argument('-questions_file', type=str, default='./prompt.json', help='
 args = parser.parse_args()
 
 # Initialize logging at the start of your script
-sys.stdout = Logger("processing_try1.log")
+sys.stdout = Logger("processing_mimictr.log")
 sys.stderr = sys.stdout  # Redirect stderr to the same logger
 
 # Keep a reference to original stdout/stderr if needed

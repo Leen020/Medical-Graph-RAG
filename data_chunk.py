@@ -52,17 +52,19 @@ def run_chunk(essay):
 
     # Extraction
     extraction_chain = create_extraction_chain_pydantic(pydantic_schema=Sentences, llm=llm) 
-
+    print(f"essay before splitting: {essay}")
     paragraphs = essay.split("\n\n")
-
+    print(f"Number of paragraphs: {len(paragraphs)} - {paragraphs}...")
     essay_propositions = []
 
     for i, para in enumerate(paragraphs):
+        print(f"Paragraph {i}: {para[:1000]}")
         try:
             propositions = get_propositions(para, runnable, extraction_chain)
+            print(f"Propositions extracted: {propositions}")
             essay_propositions.extend(propositions)
-            print (f"propositions: {essay_propositions}")
-        
+            print (f"propositions: {len(essay_propositions)}")
+
         except ValueError as e:
             if "Azure has not provided the response due to a content filter" in str(e):
                 print(f"\nSkipped paragraph {i} due to content filter. Continuing...\n")
@@ -72,6 +74,7 @@ def run_chunk(essay):
 
     ac = AgenticChunker()
     essay_propositions = list(filter(None, essay_propositions))
+    print(f"Number of propositions after filtering: {len(essay_propositions)}")
     ac.add_propositions(essay_propositions)
     ac.pretty_print_chunks()
     chunks = ac.get_chunks(get_type='list_of_strings')

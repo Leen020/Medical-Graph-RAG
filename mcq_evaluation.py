@@ -148,7 +148,7 @@ def run_inference(n4j, questions, results_file="inference_results.json"):
         question_id = question_data["question_id"]
         correct_answer = question_data["answer_letter"]
         
-        question_text += "\nStrictly follow this format: answer is (put your answer letter choice here; do not add the paranthesis) ."
+        question_text += "\nFormatı kesinlikle şu şekilde takip edin: cevap şudur (buraya cevabınızın harf seçeneğini yazın; parantez eklemeyin)"
         print(f"\nProcessing Question {idx+1} (ID: {question_id}): {question_text}\n")
 
         # Generate summary for this single question

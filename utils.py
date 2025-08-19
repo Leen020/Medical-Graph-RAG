@@ -1,15 +1,17 @@
 # from openai import OpenAI
 import os
 from neo4j import GraphDatabase
+import time
 import numpy as np
 from camel.storages import Neo4jGraph
 import uuid
 from summerize import process_chunks
 import openai
 from openai import AzureOpenAI, OpenAI
-# from langchain_openai import AzureOpenAIEmbeddings
+from tenacity import retry, stop_after_attempt, wait_exponential_jitter
 from langchain_community.embeddings import OpenAIEmbeddings
 # from langchain_openai import AzureChatOpenAI
+# from langchain_openai import AzureOpenAIEmbeddings
 
 sys_prompt_one = """
 Lütfen soruyu, sağlanan tıbbi bilgiyle ilgili grafik tabanlı veriler tarafından desteklenen bulguları kullanarak yanıtlayın.
@@ -144,22 +146,28 @@ def find_index_of_largest(nums):
     
     return largest_original_index
 
-# client_medgemma = OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY"))
+client_medgemma = OpenAI(base_url=os.getenv("BASE_URL"), api_key=os.getenv("API_KEY"))
 
-# def call_medgemma(sys, user):
-#     print(f"Calling Medgemma with system prompt: {sys} and user prompt: {user}")
-#     response = client_medgemma.chat.completions.create(
-#         model="google/medgemma-27b-text-it",
-#         messages=[
-#             {"role": "system", "content": sys},
-#             {"role": "user", "content": user},
-#         ],
-#         temperature=0.3,
-#         # vLLM‑only extras go in extra_body
-#         extra_body={"top_k": 50},
-#     )
-#     print("Medgemma is called in utils.py")
-#     return response.choices[0].message.content.strip()
+@retry(
+    stop=stop_after_attempt(5),              # try up to 5 times
+    wait=wait_exponential_jitter(initial=1), # 1s, 2‑4s, 4‑8s, ...
+    reraise=True,
+)
+def call_medgemma(sys, user):
+    time.sleep(4)  # Adding a delay to avoid rate limiting
+    print(f"Calling Medgemma with system prompt: {sys} and user prompt: {user}")
+    response = client_medgemma.chat.completions.create(
+        model="google/medgemma-27b-text-it",
+        messages=[
+            {"role": "system", "content": sys},
+            {"role": "user", "content": user},
+        ],
+        temperature=0.3,
+        # vLLM‑only extras go in extra_body
+        extra_body={"top_k": 50},
+    )
+    print("Medgemma is called in utils.py")
+    return response.choices[0].message.content.strip()
 
 def get_response(n4j, gid, query):
     print("entering get_response")
@@ -174,7 +182,7 @@ def get_response(n4j, gid, query):
         "Soru: " + query +
         " | Sağlanan bilgiler: " + "".join(selfcont)
     )
-    res = call_llm(sys_prompt_one, user_one)
+    res = call_medgemma(sys_prompt_one, user_one)
     print(f"first response from LLM: {res}\n")
 
     # Önceki yanıt + referanslar
@@ -183,7 +191,7 @@ def get_response(n4j, gid, query):
         " | Önceki yanıt: " + res +
         " | Referanslar: " + "".join(linkcont)
     )
-    res = call_llm(sys_prompt_two, user_two)
+    res = call_medgemma(sys_prompt_two, user_two)
     print(f"second response from LLM: {res}\n")
     return res
 
@@ -206,14 +214,18 @@ def link_context(n4j, gid):
         WITH n.id AS NodeId1,
             m.reference AS Reference,
             TYPE(r) AS ReferenceType,
-            collect(DISTINCT {RelationType: type(s), Concept: o.turkish, Definition: o.tr_def}) AS Connections
+            collect(DISTINCT {RelationType: type(s), Concept: o.turkish}) AS Connections
         RETURN NodeId1, Reference, ReferenceType, Connections
+    LIMIT 20
     """
     res = n4j.query(retrieve_query, {'gid': gid})
     for r in res:
         # Expand each set of connections into separate entries with n and m
         for ind, connection in enumerate(r["Connections"]):
-            cont.append("Referans" + str(ind) + ": " + r["NodeId1"] + " düğümü şu referansa sahiptir: " + r['Reference'] + " " + connection["RelationType"] + " " + connection["Concept"] + " ve tanımı: " + connection["Definition"] 
+            if r["Reference"] is None:
+                print(f"Reference is None")
+                continue
+            cont.append("Referans" + str(ind) + ": " + r["NodeId1"] + " düğümü şu referansa sahiptir: " + r['Reference'] + " " + connection["RelationType"] + " " + connection["Concept"]
 )
     print(f"link_context is called to retrieve references for gid {gid}.")
     print(f"References retrieved: {cont} with token length of {len(cont)} ")
@@ -237,6 +249,7 @@ def ret_context(n4j, gid):
 
     // Return node IDs and relationship types in structured format
     RETURN n.id AS NodeId1, relType, m.id AS NodeId2
+    LIMIT 50
     """
     res = n4j.query(ret_query, {'gid': gid})
     for r in res:
